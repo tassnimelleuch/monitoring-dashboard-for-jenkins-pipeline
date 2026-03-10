@@ -1,0 +1,285 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .page-title {
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 24px;
+        color: #1a1a2e;
+    }
+
+    /* ── KPI Cards ── */
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-bottom: 28px;
+    }
+
+    .kpi-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        border: 1.5px solid #f3f4f6;
+    }
+
+    .kpi-label {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        color: #9ca3af;
+        margin-bottom: 8px;
+    }
+
+    .kpi-value {
+        font-size: 32px;
+        font-weight: 700;
+        color: #1a1a2e;
+        line-height: 1;
+    }
+
+    .kpi-value.green  { color: #10b981; }
+    .kpi-value.red    { color: #ef4444; }
+    .kpi-value.blue   { color: #3b82f6; }
+    .kpi-value.purple { color: #6366f1; }
+
+    .kpi-sub {
+        font-size: 12px;
+        color: #9ca3af;
+        margin-top: 6px;
+    }
+
+    /* ── Charts ── */
+    .charts-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-bottom: 28px;
+    }
+
+    .chart-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        border: 1.5px solid #f3f4f6;
+    }
+
+    .chart-card.full { grid-column: 1 / -1; }  /* spans both columns */
+
+    .chart-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: #374151;
+        margin-bottom: 16px;
+    }
+
+    /* ── Connection banner ── */
+    .conn-banner {
+        padding: 10px 16px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .conn-banner.ok   { background: #d1fae5; color: #065f46; }
+    .conn-banner.fail { background: #fee2e2; color: #7f1d1d; }
+    .conn-banner.wait { background: #fef3c7; color: #78350f; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-title">📊 Dashboard</div>
+
+<!-- Connection status banner -->
+<div class="conn-banner wait" id="connBanner">
+    ⏳ Connecting to Jenkins...
+</div>
+
+<!-- KPI Cards -->
+<div class="kpi-grid">
+    <div class="kpi-card">
+        <div class="kpi-label">Total Builds</div>
+        <div class="kpi-value blue" id="totalBuilds">—</div>
+        <div class="kpi-sub">All time</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-label">Success Rate</div>
+        <div class="kpi-value green" id="successRate">—</div>
+        <div class="kpi-sub">Finished builds</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-label">Health Score</div>
+        <div class="kpi-value purple" id="healthScore">—</div>
+        <div class="kpi-sub">Jenkins score</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-label">Active Builds</div>
+        <div class="kpi-value" id="activeBuilds">—</div>
+        <div class="kpi-sub">Currently running</div>
+    </div>
+</div>
+
+<!-- Charts -->
+<div class="charts-grid">
+    <div class="chart-card">
+        <div class="chart-title">🕐 Build Duration (last 10)</div>
+        <canvas id="durationChart" height="200"></canvas>
+    </div>
+    <div class="chart-card">
+        <div class="chart-title">📈 Build Trend (last 10)</div>
+        <canvas id="trendChart" height="200"></canvas>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+// ── Chart instances ─────────────────────────────────────────────────────────
+let durationChart = null;
+let trendChart    = null;
+
+// ── Colour helpers ──────────────────────────────────────────────────────────
+function resultColor(result) {
+    if (result === 'SUCCESS') return '#10b981';
+    if (result === 'FAILURE') return '#ef4444';
+    if (result === 'ABORTED') return '#9ca3af';
+    return '#f59e0b';  // running / unknown
+}
+
+// ── Update KPI cards ────────────────────────────────────────────────────────
+function updateCards(data) {
+    document.getElementById('totalBuilds').textContent  = data.total_builds ?? '—';
+    document.getElementById('successRate').textContent  = data.success_rate != null ? data.success_rate + '%' : '—';
+    document.getElementById('healthScore').textContent  = data.health_score != null ? data.health_score + '%' : '—';
+    document.getElementById('activeBuilds').textContent = data.running ?? '—';
+
+    // Color active builds red if any are running
+    const active = document.getElementById('activeBuilds');
+    active.className = 'kpi-value ' + (data.running > 0 ? 'green' : '');
+}
+
+// ── Build Duration Chart ────────────────────────────────────────────────────
+function renderDurationChart(builds) {
+    const labels = builds.map(b => '#' + b.number);
+    // duration comes in milliseconds from Jenkins — convert to seconds
+    const durations = builds.map(b => Math.round((b.duration || 0) / 1000));
+    const colors = builds.map(b => resultColor(b.result));
+
+    if (durationChart) durationChart.destroy();
+
+    durationChart = new Chart(document.getElementById('durationChart'), {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [{
+                label: 'Duration (seconds)',
+                data: durations,
+                backgroundColor: colors,
+                borderRadius: 5,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, title: { display: true, text: 'Seconds' } }
+            }
+        }
+    });
+}
+
+// ── Build Trend Chart ───────────────────────────────────────────────────────
+function renderTrendChart(builds) {
+    // 1 = success, 0 = failure/other — simple pass/fail line
+    const labels  = builds.map(b => '#' + b.number);
+    const values  = builds.map(b => b.result === 'SUCCESS' ? 1 : 0);
+    const colors  = builds.map(b => resultColor(b.result));
+
+    if (trendChart) trendChart.destroy();
+
+    trendChart = new Chart(document.getElementById('trendChart'), {
+        type: 'line',
+        data: {
+            labels,
+            datasets: [{
+                label: 'Build result',
+                data: values,
+                borderColor: '#6366f1',
+                backgroundColor: 'rgba(99,102,241,0.08)',
+                pointBackgroundColor: colors,
+                pointRadius: 6,
+                tension: 0.3,
+                fill: true,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: {
+                    min: -0.2, max: 1.2,
+                    ticks: {
+                        // Show pass/fail labels instead of 0/1
+                        callback: v => v === 1 ? 'Pass' : v === 0 ? 'Fail' : ''
+                    }
+                }
+            }
+        }
+    });
+}
+
+// ── Connection banner ────────────────────────────────────────────────────────
+function setBanner(state) {
+    const el = document.getElementById('connBanner');
+    if (state === 'ok') {
+        el.className = 'conn-banner ok';
+        el.textContent = '✅ Connected to Jenkins';
+    } else if (state === 'fail') {
+        el.className = 'conn-banner fail';
+        el.textContent = '❌ Cannot reach Jenkins — check your connection';
+    } else {
+        el.className = 'conn-banner wait';
+        el.textContent = '⏳ Connecting to Jenkins...';
+    }
+}
+
+// ── Main fetch function ─────────────────────────────────────────────────────
+// This calls /jenkins/kpis, gets JSON back, and updates everything.
+// It runs once on page load, then every 30 seconds automatically.
+async function fetchData() {
+    try {
+        const resp = await fetch('/jenkins/kpis');
+        const data = await resp.json();
+
+        if (!data.connected) {
+            setBanner('fail');
+            return;
+        }
+
+        setBanner('ok');
+        updateCards(data);
+
+        if (data.build_trend && data.build_trend.length > 0) {
+            renderDurationChart(data.build_trend);
+            renderTrendChart(data.build_trend);
+        }
+
+    } catch (err) {
+        setBanner('fail');
+        console.error('Dashboard fetch error:', err);
+    }
+}
+
+fetchData();
+setInterval(fetchData, 30000);
+</script>
+{% endblock %}

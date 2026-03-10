@@ -3,7 +3,6 @@ from auth import auth_bp
 from models import users, find_user, get_pending_count
 
 
-
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -11,39 +10,41 @@ def register():
         password = request.form.get('password', '').strip()
         role     = request.form.get('role', '')
 
-        # Validate
         error = None
         if not username or not password:
             error = 'All fields are required.'
-
+        elif len(username) < 3:
+            error = 'Username must be at least 3 characters.'
+        elif len(password) < 4:
+            error = 'Password must be at least 4 characters.'
+        elif role not in ('developer', 'qa'):
+            error = 'Please select a role.'
         elif find_user(username):
             error = f'Username "{username}" is already taken.'
 
         if error:
-            # Re-render keeping what the user already typed
             return render_template('auth/register.html',
                                    error=error, username=username, role=role)
 
-        # Save new user as pending
         users.append({
             'username': username,
             'password': password,
             'role':     role,
-            'status':   'pending'  # admin must approve before they can log in
+            'status':   'pending'
         })
 
-        # Pass a one-time message to the login page
-        session['flash'] = 'Account requested! Please wait for admin approval.'
+        session['flash'] = 'Account requested! Waiting for admin approval.'
         return redirect(url_for('auth.login'))
 
     return render_template('auth/register.html', error=None, username='', role='')
 
 
-# ── LOGIN ──────────────────────────────────────────────────────────────────────
-
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
-    # Pop reads the flash message once and deletes it from session
+    # If already logged in, go straight to dashboard
+    if session.get('username'):
+        return redirect(url_for('main.dashboard'))
+
     flash = session.pop('flash', None)
 
     if request.method == 'POST':
@@ -51,12 +52,10 @@ def login():
         password = request.form.get('password', '').strip()
         user = find_user(username)
 
-        # Wrong username or password
         if not user or user['password'] != password:
             return render_template('auth/login.html',
                                    error='Invalid username or password.', flash=None)
 
-        # Correct credentials — check status
         if user['status'] == 'pending':
             return render_template('auth/login.html',
                                    error='Your account is awaiting admin approval.', flash=None)
@@ -65,26 +64,22 @@ def login():
             return render_template('auth/login.html',
                                    error='Your registration was rejected.', flash=None)
 
-        # All good — store in session (this is how Flask remembers who is logged in)
+        # Log in — store in session
         session['username'] = user['username']
         session['role']     = user['role']
 
-        if user['role'] == 'admin':
-            return redirect(url_for('auth.admin_users'))
+        # Everyone goes to dashboard — admin and users alike
+        # Admin sees dashboard + has Manage Users in sidebar
         return redirect(url_for('main.dashboard'))
 
     return render_template('auth/login.html', error=None, flash=flash)
 
 
-# ── LOGOUT ─────────────────────────────────────────────────────────────────────
-
 @auth_bp.route('/logout')
 def logout():
-    session.clear()  # wipe the session — user is now logged out
+    session.clear()
     return redirect(url_for('auth.login'))
 
-
-# ── ADMIN USER MANAGEMENT ──────────────────────────────────────────────────────
 
 @auth_bp.route('/admin/users')
 def admin_users():
@@ -94,8 +89,7 @@ def admin_users():
     return render_template('auth/admin_users.html',
                            pending  = [u for u in users if u['status'] == 'pending'],
                            approved = [u for u in users if u['status'] == 'approved' and u['role'] != 'admin'],
-                           rejected = [u for u in users if u['status'] == 'rejected'],
-                           pending_count = get_pending_count())
+                           rejected = [u for u in users if u['status'] == 'rejected'])
 
 
 @auth_bp.route('/admin/approve/<username>', methods=['POST'])
