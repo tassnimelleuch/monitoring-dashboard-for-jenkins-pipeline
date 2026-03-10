@@ -1,8 +1,256 @@
-<!-- This must be OUTSIDE the <style> tag -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Jenkins Monitor{% endblock %}</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #f0f2f5;
+            color: #1a1a2e;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        .sidebar {
+            width: 240px;
+            min-height: 100vh;
+            background: #1a1a2e;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            position: fixed;
+            top: 0; left: 0; bottom: 0;
+        }
+
+        .sidebar-brand {
+            padding: 24px 20px 20px;
+            border-bottom: 1px solid #2e2e4a;
+        }
+        .sidebar-brand h2 { font-size: 16px; font-weight: 700; color: white; }
+        .sidebar-brand h2 span { color: #6366f1; }
+        .sidebar-brand p { font-size: 11px; color: #4b5563; margin-top: 3px; }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 16px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .sidebar-label {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #4b5563;
+            padding: 8px 8px 4px;
+            margin-top: 8px;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 12px;
+            border-radius: 8px;
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 13.5px;
+            font-weight: 500;
+            transition: all 0.15s;
+        }
+        .sidebar-link:hover { background: #2e2e4a; color: white; }
+        .sidebar-link.active { background: #6366f1; color: white; }
+        .sidebar-link .icon { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
+
+        .sidebar-link .badge {
+            margin-left: auto;
+            background: #ef4444;
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 9px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 5px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.5); }
+            50%       { box-shadow: 0 0 0 5px rgba(239,68,68,0); }
+        }
+
+        .sidebar-footer {
+            padding: 16px 12px;
+            border-top: 1px solid #2e2e4a;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .sidebar-user {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            background: #2e2e4a;
+        }
+
+        .sidebar-avatar {
+            width: 32px; height: 32px;
+            border-radius: 8px;
+            background: #6366f1;
+            color: white;
+            font-size: 13px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-transform: uppercase;
+            flex-shrink: 0;
+        }
+
+        .sidebar-user-info { line-height: 1.4; overflow: hidden; }
+        .sidebar-user-name { font-size: 13px; font-weight: 600; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .sidebar-user-role { font-size: 10px; color: #6366f1; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+
+        .sidebar-logout {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 12px;
+            border-radius: 8px;
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.15s;
+        }
+        .sidebar-logout:hover { background: #ef444420; color: #ef4444; }
+        .sidebar-logout .icon { font-size: 16px; width: 20px; text-align: center; }
+
+        .main-content {
+            margin-left: 240px;
+            flex: 1;
+            min-height: 100vh;
+            padding: 36px 32px;
+        }
+
+        .main-content.full-width {
+            margin-left: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .flashes {
+            position: fixed;
+            top: 20px; right: 20px;
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-width: 360px;
+        }
+
+        .flash {
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .flash.success { background: #d1fae5; border-left: 4px solid #10b981; color: #065f46; }
+        .flash.error   { background: #fee2e2; border-left: 4px solid #ef4444; color: #7f1d1d; }
+        .flash.info    { background: #dbeafe; border-left: 4px solid #3b82f6; color: #1e3a5f; }
+
+        @keyframes slideIn {
+            from { transform: translateX(30px); opacity: 0; }
+            to   { transform: translateX(0);    opacity: 1; }
+        }
     </style>
-    {% block extra_styles %}{% endblock %} 
+
+    {% block extra_styles %}{% endblock %}
 </head>
 <body>
 
-    {% block content %}{% endblock %}  
+    {% if session.get('username') %}
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <h2>⚙️ Jenkins<span>Monitor</span></h2>
+                <p>Pipeline Dashboard</p>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="sidebar-label">Menu</div>
+
+                {% if session.get('role') == 'admin' %}
+                    <a class="sidebar-link {% if request.endpoint == 'auth.admin_users' %}active{% endif %}"
+                       href="{{ url_for('auth.admin_users') }}">
+                        <span class="icon">👥</span>
+                        Manage Users
+                        {% if pending_count and pending_count > 0 %}
+                            <span class="badge">{{ pending_count }}</span>
+                        {% endif %}
+                    </a>
+                {% else %}
+                    <a class="sidebar-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}"
+                       href="{{ url_for('main.dashboard') }}">
+                        <span class="icon">📊</span>
+                        Dashboard
+                    </a>
+                {% endif %}
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <div class="sidebar-avatar">{{ session.get('username', '?')[0] }}</div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-name">{{ session.get('username') }}</div>
+                        <div class="sidebar-user-role">{{ session.get('role') }}</div>
+                    </div>
+                </div>
+                <a class="sidebar-logout" href="{{ url_for('auth.logout') }}">
+                    <span class="icon">🚪</span>
+                    Sign out
+                </a>
+            </div>
+        </aside>
+
+        <div class="main-content">
+    {% else %}
+        <div class="main-content full-width">
+    {% endif %}
+
+        {% block content %}{% endblock %}
+
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flashes">
+                {% for category, message in messages %}
+                    <div class="flash {{ category }}" onclick="this.remove()">{{ message }}</div>
+                {% endfor %}
+            </div>
+            <script>
+                document.querySelectorAll('.flash').forEach(el => setTimeout(() => el.remove(), 4000));
+            </script>
+        {% endif %}
+    {% endwith %}
+
 </body>
+</html>

@@ -150,7 +150,6 @@
                     <div class="sub">Active account</div>
                 </div>
                 <span class="badge {{ user.role }}">{{ user.role }}</span>
-                <span class="badge approved">active</span>
                 <div class="actions">
                     <form method="POST" action="{{ url_for('auth.reject_user', username=user.username) }}"
                           onsubmit="return confirm('Revoke access for {{ user.username }}?')">
