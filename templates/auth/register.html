@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+{% block title %}Register{% endblock %}
+
+{% block extra_styles %}
+<style>
+body { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+
+.card {
+    background: white;
+    border-radius: 14px;
+    padding: 40px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+}
+
+h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+.subtitle { font-size: 13px; color: #6b7280; margin-bottom: 16px; }
+
+.notice {
+    background: #fef3c7;
+    border-left: 3px solid #f59e0b;
+    color: #78350f;
+    padding: 10px 14px;
+    border-radius: 7px;
+    font-size: 12px;
+    margin-bottom: 20px;
+}
+
+.error-box {
+    background: #fee2e2;
+    border-left: 3px solid #ef4444;
+    color: #7f1d1d;
+    padding: 10px 14px;
+    border-radius: 7px;
+    font-size: 13px;
+    margin-bottom: 16px;
+}
+
+.form-group { margin-bottom: 16px; }
+
+label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 5px;
+}
+
+input {
+    width: 100%;
+    padding: 10px 13px;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+input:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+}
+
+/* Role selector — two clickable cards */
+.role-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.role-option input[type="radio"] { display: none; }
+
+.role-option label {
+    display: block;
+    padding: 14px 10px;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 10px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: #6b7280;
+    transition: all 0.15s;
+}
+
+.role-option label .icon { font-size: 22px; display: block; margin-bottom: 5px; }
+.role-option label .desc { font-size: 11px; font-weight: 400; color: #9ca3af; margin-top: 2px; }
+
+/* When the radio is checked, style its label */
+.role-option input[type="radio"]:checked + label {
+    border-color: #6366f1;
+    background: #eef2ff;
+    color: #4f46e5;
+}
+
+button {
+    width: 100%;
+    padding: 11px;
+    background: #6366f1;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background 0.2s;
+}
+button:hover { background: #4f46e5; }
+
+.footer-link {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 13px;
+    color: #6b7280;
+}
+.footer-link a { color: #6366f1; font-weight: 600; text-decoration: none; }
+.footer-link a:hover { text-decoration: underline; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1>Register</h1>
+    <p class="subtitle">Fill in your details — admin will review your request.</p>
+
+    <div class="notice">⏳ Your account won't be active until an admin approves it.</div>
+
+    {% if error %}
+        <div class="error-box">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('auth.register') }}">
+
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username"
+                   value="{{ username }}"
+                    autofocus required />
+        </div>
+
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password"
+                   required />
+        </div>
+
+        <div class="form-group">
+            <label>I am a...</label>
+            <div class="role-grid">
+                <div class="role-option">
+                    <input type="radio" id="dev" name="role" value="developer"
+                           {% if role == 'developer' %}checked{% endif %} />
+                    <label for="dev">
+                        <span class="icon">💻</span>
+                        Developer
+                    </label>
+                </div>
+                <div class="role-option">
+                    <input type="radio" id="qa" name="role" value="qa"
+                           {% if role == 'qa' %}checked{% endif %} />
+                    <label for="qa">
+                        <span class="icon">🧪</span>
+                        QA Engineer
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <button type="submit">Submit Request</button>
+    </form>
+
+    <div class="footer-link">
+        Already have an account? <a href="{{ url_for('auth.login') }}">Sign in</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,156 +1,115 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
- <style>
-        /*
-            CSS goes inside <style> tags
-            CSS controls how elements LOOK (colors, sizes, spacing, layout)
-            The format is: selector { property: value; }
-        */
+{% extends 'base.html' %}
+{% block title %}Login{% endblock %}
 
-        /* The * selector means "apply this to EVERY element" */
-        * {
-            box-sizing: border-box; /* padding doesn't make elements wider than expected */
-            margin: 0;              /* remove default spacing browsers add */
-            padding: 0;
-        }
+{% block extra_styles %}
+<style>
+body { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
 
-        body {
-            /* body is everything visible on the page */
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background: #f0f2f5;    /* light grey background */
-            min-height: 100vh;      /* vh = viewport height, 100vh = full screen height */
+.card {
+    background: white;
+    border-radius: 14px;
+    padding: 40px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+}
 
-            /* Flexbox: a layout system for positioning elements */
-            display: flex;
-            align-items: center;     /* vertically center the content */
-            justify-content: center; /* horizontally center the content */
-        }
+h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+.subtitle { font-size: 13px; color: #6b7280; margin-bottom: 28px; }
 
-        .card {
-            /*
-                A "class" in CSS starts with a dot: .card
-                In HTML you write: <div class="card">
-                This lets you style specific elements without affecting others
-            */
-            background: white;
-            border-radius: 14px;    /* rounded corners */
-            padding: 40px;          /* space INSIDE the card */
-            width: 100%;
-            max-width: 400px;       /* never wider than 400px */
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08); /* subtle shadow */
-        }
+.notice {
+    padding: 10px 14px;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 18px;
+}
+.notice.success { background: #d1fae5; border-left: 3px solid #10b981; color: #065f46; }
+.notice.error   { background: #fee2e2; border-left: 3px solid #ef4444; color: #7f1d1d; }
 
-        h1 {
-            font-size: 22px;
-            font-weight: 700;       /* bold */
-            color: #1a1a2e;
-            margin-bottom: 6px;
-        }
+.form-group { margin-bottom: 16px; }
 
-        .subtitle {
-            font-size: 13px;
-            color: #6b7280;         /* grey */
-            margin-bottom: 28px;
-        }
+label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 5px;
+}
 
-        .form-group {
-            margin-bottom: 18px;    /* space between each input field */
-        }
+input {
+    width: 100%;
+    padding: 10px 13px;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+}
 
-        label {
-            display: block;         /* label sits on its own line above the input */
-            font-size: 13px;
-            font-weight: 600;
-            color: #374151;
-            margin-bottom: 6px;
-        }
+input:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+}
 
-        input {
-            width: 100%;            /* stretch to fill the card */
-            padding: 11px 14px;
-            border: 1.5px solid #e5e7eb;
-            border-radius: 8px;
-            font-size: 14px;
-            color: #1a1a2e;
-            outline: none;          /* removes the default blue browser outline */
-            transition: border-color 0.2s; /* smooth color change when focused */
-        }
+button {
+    width: 100%;
+    padding: 11px;
+    background: #6366f1;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 6px;
+    transition: background 0.2s;
+}
+button:hover { background: #4f46e5; }
 
-        input:focus {
-            /* :focus is a "pseudo-class" — styles applied when user clicks into the field */
-            border-color: #6366f1;  /* purple border when active */
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
-        }
+.footer-link {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 13px;
+    color: #6b7280;
+}
+.footer-link a { color: #6366f1; font-weight: 600; text-decoration: none; }
+.footer-link a:hover { text-decoration: underline; }
+</style>
+{% endblock %}
 
-        button {
-            width: 100%;
-            padding: 12px;
-            background: #6366f1;    /* purple */
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;        /* shows hand cursor on hover */
-            margin-top: 8px;
-            transition: background 0.2s;
-        }
+{% block content %}
+<div class="card">
+    <h1>Jenkins Monitoring Dashboard</h1>
+    <p class="subtitle">Sign in to your account</p>
 
-        button:hover {
-            background: #4f46e5;    /* darker purple on hover */
-        }
+    <!-- Flash = one-time message from register page -->
+    {% if flash %}
+        <div class="notice success">{{ flash }}</div>
+    {% endif %}
 
-        .error {
-            background: #fee2e2;    /* light red background */
-            border-left: 3px solid #ef4444; /* red left border */
-            color: #b91c1c;
-            padding: 10px 14px;
-            border-radius: 6px;
-            font-size: 13px;
-            margin-bottom: 20px;
-        }
-    </style></head>
-<body> 
-    <div class="card">
-    <h1>Login</h1>
-            <p class="subtitle">Sign in to continue</p>
-            {% if error %}
-                <div class="error">{{ error }}</div>
-            {% endif %}
+    {% if error %}
+        <div class="notice error">{{ error }}</div>
+    {% endif %}
 
-        <form method="POST" action="{{ url_for('login') }}">
-<div class="form-group">
-                <label for="username">Username</label>
-   <input
-                    type="text"
-                    id="username"
-                    name="username"
-                    placeholder="Enter your username"
-                    autofocus
-                    required
-                />  
-</div>
- <div class="form-group">
-                <label for="password">Password</label>
-                <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    placeholder="Enter your password"
-                    required
-                />
-                <!-- type="password" hides the characters as dots -->
-            </div>
+    <form method="POST" action="{{ url_for('auth.login') }}">
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username"
+                   placeholder="Enter your username" autofocus required />
+        </div>
 
-            <button type="submit">Sign In</button>
-            <!-- type="submit" tells the browser: clicking this sends the form -->
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password"
+                   placeholder="Enter your password" required />
+        </div>
 
-        </form>
+        <button type="submit">Sign In</button>
+    </form>
+
+    <div class="footer-link">
+        Don't have an account? <a href="{{ url_for('auth.register') }}">Register</a>
     </div>
-
-</body>
-</html>
+</div>
+{% endblock %}

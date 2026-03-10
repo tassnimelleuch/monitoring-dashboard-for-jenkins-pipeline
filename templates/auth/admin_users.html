@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+{% block title %}Manage Users{% endblock %}
+
+{% block extra_styles %}
+<style>
+.page { max-width: 860px; margin: 0 auto; padding: 36px 24px; }
+
+.page-title { font-size: 20px; font-weight: 700; margin-bottom: 28px; }
+
+.section { margin-bottom: 32px; }
+
+.section-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: #9ca3af;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.count {
+    background: #f3f4f6;
+    color: #374151;
+    padding: 1px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+}
+.count.red { background: #fee2e2; color: #b91c1c; }
+
+.user-card {
+    background: white;
+    border: 1.5px solid #f3f4f6;
+    border-radius: 11px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 8px;
+}
+
+.user-card.pending { border-left: 3px solid #f59e0b; }
+
+.avatar {
+    width: 38px; height: 38px;
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 15px;
+    flex-shrink: 0; text-transform: uppercase;
+}
+.avatar.developer { background: #dbeafe; color: #1d4ed8; }
+.avatar.qa        { background: #d1fae5; color: #065f46; }
+
+.user-info { flex: 1; }
+.user-info .name { font-weight: 600; font-size: 14px; }
+.user-info .sub  { font-size: 12px; color: #9ca3af; margin-top: 1px; }
+
+.badge {
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+.badge.developer { background: #dbeafe; color: #1d4ed8; }
+.badge.qa        { background: #d1fae5; color: #065f46; }
+.badge.pending   { background: #fef3c7; color: #92400e; }
+.badge.approved  { background: #d1fae5; color: #065f46; }
+.badge.rejected  { background: #fee2e2; color: #991b1b; }
+
+.actions { display: flex; gap: 7px; }
+
+.btn {
+    padding: 6px 13px;
+    border-radius: 7px;
+    font-size: 12px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.15s;
+}
+.btn:hover { opacity: 0.85; }
+.btn.approve { background: #10b981; color: white; }
+.btn.reject  { background: #f59e0b; color: white; }
+.btn.revoke  { background: #f3f4f6; color: #374151; }
+
+.empty {
+    text-align: center;
+    padding: 24px;
+    color: #9ca3af;
+    font-size: 13px;
+    background: white;
+    border-radius: 11px;
+    border: 1.5px dashed #e5e7eb;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page">
+    <div class="page-title">👥 Manage Users</div>
+
+    <!-- PENDING -->
+    <div class="section">
+        <div class="section-label">
+            ⏳ Pending Approval
+            <span class="count {% if pending %}red{% endif %}">{{ pending | length }}</span>
+        </div>
+
+        {% if pending %}
+            {% for user in pending %}
+            <div class="user-card pending">
+                <div class="avatar {{ user.role }}">{{ user.username[0] }}</div>
+                <div class="user-info">
+                    <div class="name">{{ user.username }}</div>
+                    <div class="sub">Requested access as {{ user.role }}</div>
+                </div>
+                <span class="badge {{ user.role }}">{{ user.role }}</span>
+                <span class="badge pending">pending</span>
+                <div class="actions">
+                    <form method="POST" action="{{ url_for('auth.approve_user', username=user.username) }}">
+                        <button class="btn approve" type="submit">✓ Approve</button>
+                    </form>
+                    <form method="POST" action="{{ url_for('auth.reject_user', username=user.username) }}">
+                        <button class="btn reject" type="submit">✗ Reject</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty">✅ No pending requests</div>
+        {% endif %}
+    </div>
+
+    <!-- APPROVED -->
+    <div class="section">
+        <div class="section-label">
+            ✅ Approved Users
+            <span class="count">{{ approved | length }}</span>
+        </div>
+
+        {% if approved %}
+            {% for user in approved %}
+            <div class="user-card">
+                <div class="avatar {{ user.role }}">{{ user.username[0] }}</div>
+                <div class="user-info">
+                    <div class="name">{{ user.username }}</div>
+                    <div class="sub">Active account</div>
+                </div>
+                <span class="badge {{ user.role }}">{{ user.role }}</span>
+                <span class="badge approved">active</span>
+                <div class="actions">
+                    <form method="POST" action="{{ url_for('auth.reject_user', username=user.username) }}"
+                          onsubmit="return confirm('Revoke access for {{ user.username }}?')">
+                        <button class="btn revoke" type="submit">Revoke</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty">No approved users yet</div>
+        {% endif %}
+    </div>
+
+    <!-- REJECTED -->
+    {% if rejected %}
+    <div class="section">
+        <div class="section-label">
+            ❌ Rejected
+            <span class="count">{{ rejected | length }}</span>
+        </div>
+        {% for user in rejected %}
+        <div class="user-card">
+            <div class="avatar {{ user.role }}">{{ user.username[0] }}</div>
+            <div class="user-info">
+                <div class="name">{{ user.username }}</div>
+                <div class="sub">{{ user.role }}</div>
+            </div>
+            <span class="badge rejected">rejected</span>
+            <div class="actions">
+                <form method="POST" action="{{ url_for('auth.approve_user', username=user.username) }}">
+                    <button class="btn approve" type="submit">Re-approve</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

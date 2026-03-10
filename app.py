@@ -1,23 +1,26 @@
-from flask import render_template,request, redirect, url_for
-app= Flask(__name__)
-app.secret_key = 'my-secret-key-change-this-later'
-@app.route('/login', methods=['GET', 'POST'])
+from flask import Flask, session, redirect, url_for
+from config import Config
 
-def login (): 
-    if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-        if username == 'admin' and password == 'admin':
-            return redirect(url_for('dashboard'))
-        else:
-            return render_template('/auth/login.html', error='not authorized')
+def create_app():
+    app= Flask(__name__)
+    app.config.from_object(Config)
+    from auth import auth_bp
+    app.register_blueprint(auth_bp)
 
-    return render_template('/auth/login.html')
+    from flask import Blueprint, render_template
+    main_bp = Blueprint('main', __name__)
+    @main_bp.route('/')
+    def index():
+        return redirect(url_for('auth.login'))
 
-@app.route('/dashboard')
-def dashboard():
-    return '<h1>Welcome to the Dashboard!</h1>'
-
+    @main_bp.route('/dashboard')
+    def dashboard():
+        if 'username' not in session:
+            return redirect(url_for('auth.login'))
+        return render_template('dashboard_placeholder.html', username=session['username'],role=session['role'])
+    app.register_blueprint(main_bp)
+    return app
 
 if __name__ == '__main__':
+    app = create_app()
     app.run(debug=True)
