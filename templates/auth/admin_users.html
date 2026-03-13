@@ -3,190 +3,332 @@
 
 {% block extra_styles %}
 <style>
-.page { max-width: 860px; margin: 0 auto; padding: 36px 24px; }
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
-.page-title { font-size: 20px; font-weight: 700; margin-bottom: 28px; }
+:root {
+  --bg:#0c0c14; --bg2:#12121e; --bg3:#191928; --bg4:#1f1f32;
+  --border:rgba(255,255,255,0.06); --border2:rgba(255,255,255,0.11);
+  --text:#e8e8f8; --text2:#aaaab7;
+  --accent:#7c6fff; --aglow:rgba(124,111,255,0.35);
+  --green:#00dba0; --yellow:#f5c542; --red:#ff4560; --blue:#3ab8f8; --orange:#ff8c42;
+}
 
-.section { margin-bottom: 32px; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+.page {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 36px 24px 60px;
+  animation: fadeUp 0.4s ease both;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.page-icon {
+  width: 40px; height: 40px;
+  border-radius: 11px;
+  background: rgba(124,111,255,0.12);
+  border: 1px solid rgba(124,111,255,0.2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px;
+}
+
+.page-title {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.page-sub {
+  font-size: 11.5px;
+  color: var(--text2);
+  margin-top: 2px;
+}
+
+.section { margin-bottom: 28px; }
 
 .section-label {
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
-    color: #9ca3af;
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text2);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .count {
-    background: #f3f4f6;
-    color: #374151;
-    padding: 1px 8px;
-    border-radius: 20px;
-    font-size: 11px;
+  background: var(--bg3);
+  color: var(--text2);
+  border: 1px solid var(--border2);
+  padding: 1px 8px;
+  border-radius: 20px;
+  font-size: 10.5px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
 }
-.count.red { background: #fee2e2; color: #b91c1c; }
+
+.count.red {
+  background: rgba(255,69,96,0.1);
+  border-color: rgba(255,69,96,0.2);
+  color: var(--red);
+}
 
 .user-card {
-    background: white;
-    border: 1.5px solid #f3f4f6;
-    border-radius: 11px;
-    padding: 14px 18px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    margin-bottom: 8px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 8px;
+  transition: border-color 0.15s;
 }
 
-.user-card.pending { border-left: 3px solid #f59e0b; }
+.user-card:hover { border-color: var(--border2); }
+
+.user-card.pending {
+  border-left: 3px solid var(--yellow);
+}
 
 .avatar {
-    width: 38px; height: 38px;
-    border-radius: 9px;
-    display: flex; align-items: center; justify-content: center;
-    font-weight: 700; font-size: 15px;
-    flex-shrink: 0; text-transform: uppercase;
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 15px;
+  flex-shrink: 0;
+  text-transform: uppercase;
+  font-family: 'JetBrains Mono', monospace;
 }
-.avatar.developer { background: #dbeafe; color: #1d4ed8; }
-.avatar.qa        { background: #d1fae5; color: #065f46; }
 
-.user-info { flex: 1; }
-.user-info .name { font-weight: 600; font-size: 14px; }
-.user-info .sub  { font-size: 12px; color: #9ca3af; margin-top: 1px; }
+.avatar.developer {
+  background: rgba(58,184,248,0.12);
+  color: var(--blue);
+}
+
+.avatar.qa {
+  background: rgba(0,219,160,0.12);
+  color: var(--green);
+}
+
+.user-info { flex: 1; min-width: 0; }
+
+.user-info .name {
+  font-weight: 700;
+  font-size: 13.5px;
+  letter-spacing: -0.01em;
+}
+
+.user-info .sub {
+  font-size: 11px;
+  color: var(--text2);
+  margin-top: 2px;
+}
 
 .badge {
-    padding: 3px 9px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-family: 'JetBrains Mono', monospace;
+  flex-shrink: 0;
 }
-.badge.developer { background: #dbeafe; color: #1d4ed8; }
-.badge.qa        { background: #d1fae5; color: #065f46; }
-.badge.pending   { background: #fef3c7; color: #92400e; }
-.badge.approved  { background: #d1fae5; color: #065f46; }
-.badge.rejected  { background: #fee2e2; color: #991b1b; }
 
-.actions { display: flex; gap: 7px; }
+.badge.developer {
+  background: rgba(58,184,248,0.1);
+  color: var(--blue);
+  border: 1px solid rgba(58,184,248,0.2);
+}
+
+.badge.qa {
+  background: rgba(0,219,160,0.1);
+  color: var(--green);
+  border: 1px solid rgba(0,219,160,0.2);
+}
+
+.badge.pending {
+  background: rgba(245,197,66,0.1);
+  color: var(--yellow);
+  border: 1px solid rgba(245,197,66,0.2);
+}
+
+.badge.approved {
+  background: rgba(0,219,160,0.1);
+  color: var(--green);
+  border: 1px solid rgba(0,219,160,0.2);
+}
+
+.badge.rejected {
+  background: rgba(255,69,96,0.1);
+  color: var(--red);
+  border: 1px solid rgba(255,69,96,0.2);
+}
+
+.actions { display: flex; gap: 7px; flex-shrink: 0; }
 
 .btn {
-    padding: 6px 13px;
-    border-radius: 7px;
-    font-size: 12px;
-    font-weight: 600;
-    border: none;
-    cursor: pointer;
-    transition: opacity 0.15s;
+  padding: 6px 13px;
+  border-radius: 7px;
+  font-size: 11.5px;
+  font-weight: 700;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  border: none;
+  cursor: pointer;
+  transition: filter 0.15s, transform 0.12s;
+  white-space: nowrap;
 }
-.btn:hover { opacity: 0.85; }
-.btn.approve { background: #10b981; color: white; }
-.btn.reject  { background: #f59e0b; color: white; }
-.btn.revoke  { background: #f3f4f6; color: #374151; }
+
+.btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+
+.btn.approve {
+  background: var(--green);
+  color: #021a0e;
+}
+
+.btn.reject {
+  background: var(--yellow);
+  color: #1a1000;
+}
+
+.btn.revoke {
+  background: var(--bg3);
+  color: var(--text2);
+  border: 1px solid var(--border2);
+}
+
+.btn.revoke:hover { color: var(--red); border-color: rgba(255,69,96,0.3); }
 
 .empty {
-    text-align: center;
-    padding: 24px;
-    color: #9ca3af;
-    font-size: 13px;
-    background: white;
-    border-radius: 11px;
-    border: 1.5px dashed #e5e7eb;
+  text-align: center;
+  padding: 24px;
+  color: var(--text2);
+  font-size: 12.5px;
+  background: var(--bg2);
+  border-radius: 12px;
+  border: 1px dashed var(--border2);
 }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="page">
-    <div class="page-title">👥 Manage Users</div>
 
-    <!-- PENDING -->
-    <div class="section">
-        <div class="section-label">
-            ⏳ Pending Approval
-            <span class="count {% if pending %}red{% endif %}">{{ pending | length }}</span>
-        </div>
+  <div class="page-header">
+    <div class="page-icon">👥</div>
+    <div>
+      <div class="page-title">Manage Users</div>
+      <div class="page-sub">Review and manage access requests</div>
+    </div>
+  </div>
 
-        {% if pending %}
-            {% for user in pending %}
-            <div class="user-card pending">
-                <div class="avatar {{ user.role }}">{{ user.username[0] }}</div>
-                <div class="user-info">
-                    <div class="name">{{ user.username }}</div>
-                    <div class="sub">Requested access as {{ user.role }}</div>
-                </div>
-                <span class="badge {{ user.role }}">{{ user.role }}</span>
-                <span class="badge pending">pending</span>
-                <div class="actions">
-                    <form method="POST" action="{{ url_for('auth.approve_user', username=user.username) }}">
-                        <button class="btn approve" type="submit">✓ Approve</button>
-                    </form>
-                    <form method="POST" action="{{ url_for('auth.reject_user', username=user.username) }}">
-                        <button class="btn reject" type="submit">✗ Reject</button>
-                    </form>
-                </div>
-            </div>
-            {% endfor %}
-        {% else %}
-            <div class="empty">✅ No pending requests</div>
-        {% endif %}
+  <!-- PENDING -->
+  <div class="section">
+    <div class="section-label">
+      ⏳ Pending Approval
+      <span class="count {% if pending %}red{% endif %}">{{ pending | length }}</span>
     </div>
 
-    <!-- APPROVED -->
-    <div class="section">
-        <div class="section-label">
-            ✅ Approved Users
-            <span class="count">{{ approved | length }}</span>
+    {% if pending %}
+      {% for user in pending %}
+      <div class="user-card pending">
+        <div class="avatar {{ user.role }}">{{ user.username[0] }}</div>
+        <div class="user-info">
+          <div class="name">{{ user.username }}</div>
+          <div class="sub">Requested access as {{ user.role }}</div>
         </div>
-
-        {% if approved %}
-            {% for user in approved %}
-            <div class="user-card">
-                <div class="avatar {{ user.role }}">{{ user.username[0] }}</div>
-                <div class="user-info">
-                    <div class="name">{{ user.username }}</div>
-                    <div class="sub">Active account</div>
-                </div>
-                <span class="badge {{ user.role }}">{{ user.role }}</span>
-                <div class="actions">
-                    <form method="POST" action="{{ url_for('auth.reject_user', username=user.username) }}"
-                          onsubmit="return confirm('Revoke access for {{ user.username }}?')">
-                        <button class="btn revoke" type="submit">Revoke</button>
-                    </form>
-                </div>
-            </div>
-            {% endfor %}
-        {% else %}
-            <div class="empty">No approved users yet</div>
-        {% endif %}
-    </div>
-
-    <!-- REJECTED -->
-    {% if rejected %}
-    <div class="section">
-        <div class="section-label">
-            ❌ Rejected
-            <span class="count">{{ rejected | length }}</span>
+        <span class="badge {{ user.role }}">{{ user.role }}</span>
+        <span class="badge pending">pending</span>
+        <div class="actions">
+          <form method="POST" action="{{ url_for('auth.approve_user', username=user.username) }}">
+            <button class="btn approve" type="submit">✓ Approve</button>
+          </form>
+          <form method="POST" action="{{ url_for('auth.reject_user', username=user.username) }}">
+            <button class="btn reject" type="submit">✗ Reject</button>
+          </form>
         </div>
-        {% for user in rejected %}
-        <div class="user-card">
-            <div class="avatar {{ user.role }}">{{ user.username[0] }}</div>
-            <div class="user-info">
-                <div class="name">{{ user.username }}</div>
-                <div class="sub">{{ user.role }}</div>
-            </div>
-            <span class="badge rejected">rejected</span>
-            <div class="actions">
-                <form method="POST" action="{{ url_for('auth.approve_user', username=user.username) }}">
-                    <button class="btn approve" type="submit">Re-approve</button>
-                </form>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty">✅ No pending requests</div>
     {% endif %}
+  </div>
+
+  <!-- APPROVED -->
+  <div class="section">
+    <div class="section-label">
+      ✅ Approved Users
+      <span class="count">{{ approved | length }}</span>
+    </div>
+
+    {% if approved %}
+      {% for user in approved %}
+      <div class="user-card">
+        <div class="avatar {{ user.role }}">{{ user.username[0] }}</div>
+        <div class="user-info">
+          <div class="name">{{ user.username }}</div>
+          <div class="sub">Active account</div>
+        </div>
+        <span class="badge {{ user.role }}">{{ user.role }}</span>
+        <span class="badge approved">approved</span>
+        <div class="actions">
+          <form method="POST" action="{{ url_for('auth.reject_user', username=user.username) }}"
+                onsubmit="return confirm('Revoke access for {{ user.username }}?')">
+            <button class="btn revoke" type="submit">Revoke</button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty">No approved users yet</div>
+    {% endif %}
+  </div>
+
+  <!-- REJECTED -->
+  {% if rejected %}
+  <div class="section">
+    <div class="section-label">
+      ❌ Rejected
+      <span class="count">{{ rejected | length }}</span>
+    </div>
+    {% for user in rejected %}
+    <div class="user-card">
+      <div class="avatar {{ user.role }}">{{ user.username[0] }}</div>
+      <div class="user-info">
+        <div class="name">{{ user.username }}</div>
+        <div class="sub">{{ user.role }}</div>
+      </div>
+      <span class="badge rejected">rejected</span>
+      <div class="actions">
+        <form method="POST" action="{{ url_for('auth.approve_user', username=user.username) }}">
+          <button class="btn approve" type="submit">Re-approve</button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
 
 </div>
 {% endblock %}

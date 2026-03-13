@@ -1,17 +1,17 @@
-from flask import Flask, session, redirect, url_for
+from flask import Flask, session, redirect, url_for, Blueprint, render_template
 from config import Config
 from jenkins_bp import jenkins_bp
+from auth import auth_bp
+from admin_bp import admin_bp as admin_blueprint
 
 def create_app():
-    app= Flask(__name__)
+    app = Flask(__name__)
     app.config.from_object(Config)
 
-    from auth import auth_bp
     app.register_blueprint(auth_bp)
-
     app.register_blueprint(jenkins_bp)
+    app.register_blueprint(admin_blueprint)
 
-    from flask import Blueprint, render_template
     main_bp = Blueprint('main', __name__)
 
     @main_bp.route('/')
@@ -22,10 +22,11 @@ def create_app():
     def dashboard():
         if 'username' not in session:
             return redirect(url_for('auth.login'))
-        return render_template('dashboard_placeholder.html', username=session['username'],role=session['role'])
-    app.register_blueprint(main_bp)
+        return render_template('dashboard_placeholder.html',
+                               username=session['username'],
+                               role=session['role'])
 
-    #to display the number of pending users in the navbar badge
+    app.register_blueprint(main_bp)
 
     @app.context_processor
     def inject_globals():
@@ -36,6 +37,7 @@ def create_app():
         return {'pending_count': count}
 
     return app
+
 if __name__ == '__main__':
     app = create_app()
     app.run(debug=True)

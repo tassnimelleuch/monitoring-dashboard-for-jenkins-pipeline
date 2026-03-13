@@ -13,10 +13,6 @@ def register():
         error = None
         if not username or not password:
             error = 'All fields are required.'
-        elif len(username) < 3:
-            error = 'Username must be at least 3 characters.'
-        elif len(password) < 4:
-            error = 'Password must be at least 4 characters.'
         elif role not in ('developer', 'qa'):
             error = 'Please select a role.'
         elif find_user(username):

@@ -3,176 +3,338 @@
 
 {% block extra_styles %}
 <style>
-body { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  --bg:#0c0c14; --bg2:#12121e; --bg3:#191928; --bg4:#1f1f32;
+  --border:rgba(255,255,255,0.06); --border2:rgba(255,255,255,0.11);
+  --text:#e8e8f8; --text2:#aaaab7;
+  --accent:#7c6fff; --aglow:rgba(124,111,255,0.35);
+  --green:#00dba0; --yellow:#f5c542; --red:#ff4560; --blue:#3ab8f8;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 28px 28px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  width: 600px; height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(124,111,255,0.07) 0%, transparent 70%);
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.auth-wrap {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 440px;
+  padding: 20px;
+  animation: fadeUp 0.5s ease both;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 28px;
+  justify-content: center;
+}
+
+.brand-icon {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--accent), #c084fc);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  box-shadow: 0 0 20px var(--aglow);
+}
+
+.brand-name {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-family: 'JetBrains Mono', monospace;
+}
 
 .card {
-    background: white;
-    border-radius: 14px;
-    padding: 40px;
-    width: 100%;
-    max-width: 420px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 18px;
+  padding: 32px 30px;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+  position: relative;
+  overflow: hidden;
 }
 
-h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
-.subtitle { font-size: 13px; color: #6b7280; margin-bottom: 16px; }
-
-.notice {
-    background: #fef3c7;
-    border-left: 3px solid #f59e0b;
-    color: #78350f;
-    padding: 10px 14px;
-    border-radius: 7px;
-    font-size: 12px;
-    margin-bottom: 20px;
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
 }
 
-.error-box {
-    background: #fee2e2;
-    border-left: 3px solid #ef4444;
-    color: #7f1d1d;
-    padding: 10px 14px;
-    border-radius: 7px;
-    font-size: 13px;
-    margin-bottom: 16px;
+.card-title {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin-bottom: 4px;
+}
+
+.card-sub {
+  font-size: 12px;
+  color: var(--text2);
+  margin-bottom: 20px;
+}
+
+.notice-warn {
+  padding: 10px 14px;
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 18px;
+  background: rgba(245,197,66,0.08);
+  border: 1px solid rgba(245,197,66,0.2);
+  color: var(--yellow);
+}
+
+.notice-error {
+  padding: 10px 14px;
+  border-radius: 9px;
+  font-size: 12.5px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  background: rgba(255,69,96,0.1);
+  border: 1px solid rgba(255,69,96,0.2);
+  color: var(--red);
 }
 
 .form-group { margin-bottom: 16px; }
 
 label {
-    display: block;
-    font-size: 13px;
-    font-weight: 600;
-    color: #374151;
-    margin-bottom: 5px;
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text2);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 7px;
 }
 
-input {
-    width: 100%;
-    padding: 10px 13px;
-    border: 1.5px solid #e5e7eb;
-    border-radius: 8px;
-    font-size: 14px;
-    outline: none;
-    transition: border-color 0.2s;
+input[type="text"],
+input[type="password"] {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 9px;
+  font-size: 13.5px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-input:focus {
-    border-color: #6366f1;
-    box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+input[type="text"]::placeholder,
+input[type="password"]::placeholder { color: var(--text2); opacity: 0.6; }
+
+input[type="text"]:focus,
+input[type="password"]:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--aglow);
 }
 
-/* Role selector — two clickable cards */
+/* Role selector cards */
 .role-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
 }
 
 .role-option input[type="radio"] { display: none; }
 
 .role-option label {
-    display: block;
-    padding: 14px 10px;
-    border: 1.5px solid #e5e7eb;
-    border-radius: 10px;
-    text-align: center;
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 600;
-    color: #6b7280;
-    transition: all 0.15s;
+  display: block;
+  padding: 14px 12px;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 11px;
+  text-align: center;
+  cursor: pointer;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text2);
+  text-transform: none;
+  letter-spacing: 0;
+  transition: all 0.15s;
 }
 
-.role-option label .icon { font-size: 22px; display: block; margin-bottom: 5px; }
-.role-option label .desc { font-size: 11px; font-weight: 400; color: #9ca3af; margin-top: 2px; }
+.role-option label .icon {
+  font-size: 22px;
+  display: block;
+  margin-bottom: 6px;
+}
 
-/* When the radio is checked, style its label */
+.role-option label .desc {
+  font-size: 10.5px;
+  font-weight: 400;
+  color: var(--text2);
+  margin-top: 3px;
+  opacity: 0.7;
+}
+
 .role-option input[type="radio"]:checked + label {
-    border-color: #6366f1;
-    background: #eef2ff;
-    color: #4f46e5;
+  border-color: var(--accent);
+  background: rgba(124,111,255,0.1);
+  color: var(--text);
+  box-shadow: 0 0 0 1px var(--accent);
 }
 
-button {
-    width: 100%;
-    padding: 11px;
-    background: #6366f1;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    margin-top: 8px;
-    transition: background 0.2s;
+/* developer checked → blue tint */
+#dev:checked + label {
+  border-color: var(--blue);
+  background: rgba(58,184,248,0.08);
+  box-shadow: 0 0 0 1px var(--blue);
 }
-button:hover { background: #4f46e5; }
+
+/* qa checked → green tint */
+#qa:checked + label {
+  border-color: var(--green);
+  background: rgba(0,219,160,0.08);
+  box-shadow: 0 0 0 1px var(--green);
+}
+
+button[type="submit"] {
+  width: 100%;
+  padding: 11px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 9px;
+  font-size: 13.5px;
+  font-weight: 700;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: filter 0.2s, transform 0.15s, box-shadow 0.2s;
+  box-shadow: 0 4px 18px var(--aglow);
+}
+
+button[type="submit"]:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 28px var(--aglow);
+}
 
 .footer-link {
-    text-align: center;
-    margin-top: 20px;
-    font-size: 13px;
-    color: #6b7280;
+  text-align: center;
+  margin-top: 20px;
+  font-size: 12.5px;
+  color: var(--text2);
 }
-.footer-link a { color: #6366f1; font-weight: 600; text-decoration: none; }
+
+.footer-link a {
+  color: var(--accent);
+  font-weight: 700;
+  text-decoration: none;
+}
+
 .footer-link a:hover { text-decoration: underline; }
 </style>
 {% endblock %}
 
 {% block auth_content %}
-<div class="card">
-    <h1>Register</h1>
-    <p class="subtitle">Fill in your details — admin will review your request.</p>
+<div class="auth-wrap">
 
-    <div class="notice">⏳ Your account won't be active until an admin approves it.</div>
+  <div class="brand">
+    <div class="brand-icon">⚙</div>
+    <div class="brand-name">Jenkins Monitor</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Request Access</div>
+    <p class="card-sub">Fill in your details — admin will review your request.</p>
+
+    <div class="notice-warn">⏳ Your account won't be active until an admin approves it.</div>
 
     {% if error %}
-        <div class="error-box">{{ error }}</div>
+      <div class="notice-error">⚠ {{ error }}</div>
     {% endif %}
 
     <form method="POST" action="{{ url_for('auth.register') }}">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username"
+               value="{{ username }}" autofocus required />
+      </div>
 
-        <div class="form-group">
-            <label for="username">Username</label>
-            <input type="text" id="username" name="username"
-                   value="{{ username }}"
-                    autofocus required />
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required />
+      </div>
+
+      <div class="form-group">
+        <label>I am a...</label>
+        <div class="role-grid">
+          <div class="role-option">
+            <input type="radio" id="dev" name="role" value="developer"
+                   {% if role == 'developer' %}checked{% endif %} />
+            <label for="dev">
+              <span class="icon">💻</span>
+              Developer
+            </label>
+          </div>
+          <div class="role-option">
+            <input type="radio" id="qa" name="role" value="qa"
+                   {% if role == 'qa' %}checked{% endif %} />
+            <label for="qa">
+              <span class="icon">🧪</span>
+              QA Engineer
+            </label>
+          </div>
         </div>
+      </div>
 
-        <div class="form-group">
-            <label for="password">Password</label>
-            <input type="password" id="password" name="password"
-                   required />
-        </div>
-
-        <div class="form-group">
-            <label>I am a...</label>
-            <div class="role-grid">
-                <div class="role-option">
-                    <input type="radio" id="dev" name="role" value="developer"
-                           {% if role == 'developer' %}checked{% endif %} />
-                    <label for="dev">
-                        <span class="icon">💻</span>
-                        Developer
-                    </label>
-                </div>
-                <div class="role-option">
-                    <input type="radio" id="qa" name="role" value="qa"
-                           {% if role == 'qa' %}checked{% endif %} />
-                    <label for="qa">
-                        <span class="icon">🧪</span>
-                        QA Engineer
-                    </label>
-                </div>
-            </div>
-        </div>
-
-        <button type="submit">Submit Request</button>
+      <button type="submit">Submit Request →</button>
     </form>
 
     <div class="footer-link">
-        Already have an account? <a href="{{ url_for('auth.login') }}">Sign in</a>
+      Already have an account? <a href="{{ url_for('auth.login') }}">Sign in</a>
     </div>
+  </div>
+
 </div>
 {% endblock %}
