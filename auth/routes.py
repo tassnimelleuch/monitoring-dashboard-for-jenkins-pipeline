@@ -39,7 +39,7 @@ def register():
 def login():
     # If already logged in, go straight to dashboard
     if session.get('username'):
-        return redirect(url_for('admin.dashboard'))
+        return redirect(url_for('jenkins.dashboard'))
 
     flash = session.pop('flash', None)
 
@@ -66,7 +66,7 @@ def login():
 
         # Everyone goes to dashboard — admin and users alike
         # Admin sees dashboard + has Manage Users in sidebar
-        return redirect(url_for('admin.dashboard'))
+        return redirect(url_for('jenkins.dashboard'))
 
     return render_template('auth/login.html', error=None, flash=flash)
 

@@ -2,7 +2,6 @@ from flask import Flask, session, redirect, url_for, Blueprint
 from config import Config
 from jenkins_bp import jenkins_bp
 from auth import auth_bp
-from admin_bp import admin_bp as admin_blueprint
 
 
 def create_app():
@@ -11,7 +10,6 @@ def create_app():
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(jenkins_bp)
-    app.register_blueprint(admin_blueprint)
 
     main_bp = Blueprint('main', __name__)
 

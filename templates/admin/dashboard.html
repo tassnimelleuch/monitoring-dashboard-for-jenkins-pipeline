@@ -25,7 +25,6 @@
   --orange:#c96a00;
   --shadow:0 4px 20px rgba(0,0,0,0.1); --sw:268px;
 }
-
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;font-size:14px;}
 body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);display:flex;overflow:hidden;}
@@ -33,15 +32,12 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 /* ── SIDEBAR ── */
 .sidebar{width:var(--sw);height:100vh;background:var(--bg3);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:200;overflow:hidden;}
 .sidebar::before{content:'';position:absolute;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:28px 28px;opacity:.35;pointer-events:none;}
-
 .sb-profile{padding:20px 16px 16px;display:flex;align-items:center;gap:11px;border-bottom:1px solid var(--border);position:relative;flex-shrink:0;}
 .avatar{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#c084fc);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#fff;flex-shrink:0;box-shadow:0 0 0 2px var(--bg3),0 0 0 4px var(--aglow);}
 .pname{font-size:13.5px;font-weight:700;letter-spacing:-.01em;}
 .prole{font-size:10.5px;color:var(--text2);font-weight:500;margin-top:2px;}
 .theme-btn{margin-left:auto;width:30px;height:30px;border-radius:8px;border:1px solid var(--border2);background:var(--bg2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;transition:background .2s,transform .15s;}
 .theme-btn:hover{background:var(--bg4);transform:scale(1.08);}
-
-/* Jenkins status — single clean block */
 .sb-jenkins{margin:12px 13px 4px;padding:11px 12px;border-radius:10px;background:var(--bg2);border:1px solid var(--border);display:flex;align-items:center;gap:9px;flex-shrink:0;}
 .pulse-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(0,219,160,.18);flex-shrink:0;animation:breathe 2.4s ease-in-out infinite;}
 .pulse-dot-error{background:var(--red)!important;box-shadow:0 0 0 3px rgba(255,69,96,.18)!important;animation:none!important;}
@@ -55,7 +51,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .refresh-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
 .refresh-btn.spin svg{animation:spin .7s linear;}
 @keyframes spin{to{transform:rotate(360deg);}}
-
 .sb-nav{flex:1;padding:6px 10px;overflow-y:auto;min-height:0;}
 .sb-nav::-webkit-scrollbar{width:3px;}
 .sb-nav::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
@@ -97,10 +92,10 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .page{padding:20px 24px 40px;flex:1;}
 
 /* disconnected banner */
-.disconnected-banner{background:rgba(255,69,96,.08);border:1px solid rgba(255,69,96,.2);border-radius:12px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:12px;color:var(--red);font-size:13px;font-weight:600;}
+.disconnected-banner{background:rgba(255,69,96,.08);border:1px solid rgba(255,69,96,.2);border-radius:12px;padding:14px 18px;margin-bottom:20px;display:none;align-items:center;gap:12px;color:var(--red);font-size:13px;font-weight:600;}
 .disconnected-banner svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;flex-shrink:0;}
 
-/* ── STAT ROW — 4 separate cards ── */
+/* ── STAT ROW ── */
 .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
 .stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:14px;position:relative;overflow:hidden;animation:fadeUp .4s ease both;}
 .stat-card:nth-child(1){animation-delay:.04s;}
@@ -189,6 +184,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .leg-dot{width:7px;height:7px;border-radius:50%;}
 .axis-label{font-size:8.5px;fill:var(--text2);font-family:'JetBrains Mono',monospace;}
 .grid-line{stroke:currentColor;stroke-opacity:.06;stroke-width:.8;}
+/* bar chart */
 .bars-wrap{display:flex;align-items:flex-end;gap:6px;height:150px;position:relative;}
 .bars-wrap::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:var(--border);}
 .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;height:100%;justify-content:flex-end;position:relative;}
@@ -196,6 +192,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .bar:hover{opacity:.85;filter:brightness(1.2);}
 .bar.pass{background:linear-gradient(180deg,var(--green),rgba(0,219,160,.6));}
 .bar.fail{background:linear-gradient(180deg,var(--red),rgba(255,69,96,.6));}
+.bar.abrt{background:linear-gradient(180deg,var(--orange),rgba(255,140,66,.6));}
 .bar-lbl{font-size:8px;color:var(--text2);font-family:'JetBrains Mono',monospace;}
 .bar-tooltip{display:none;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--bg);border:1px solid var(--border2);border-radius:8px;padding:7px 10px;font-size:11px;color:var(--text);white-space:nowrap;z-index:100;box-shadow:var(--shadow);pointer-events:none;}
 .bar-tooltip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:4px solid transparent;border-top-color:var(--border);}
@@ -204,6 +201,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .bstat{display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:8px;font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace;}
 .bstat.pass{background:rgba(0,219,160,.1);color:var(--green);border:1px solid rgba(0,219,160,.2);}
 .bstat.fail{background:rgba(255,69,96,.1);color:var(--red);border:1px solid rgba(255,69,96,.2);}
+.bstat.abrt{background:rgba(255,140,66,.1);color:var(--orange);border:1px solid rgba(255,140,66,.2);}
 .bstat-dot{width:6px;height:6px;border-radius:50%;background:currentColor;}
 
 /* ── CHATBOT ── */
@@ -247,39 +245,30 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .toast{position:fixed;bottom:26px;left:calc(var(--sw) + 24px);background:var(--accent);color:#fff;padding:11px 18px;border-radius:10px;font-size:12.5px;font-weight:700;box-shadow:0 8px 28px var(--aglow);opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s;pointer-events:none;z-index:900;}
 .toast.show{opacity:1;transform:translateY(0);}
 .toast.abort-toast{background:var(--red);}
-
 @keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
 </style>
 </head>
 <body data-kpis-url="{{ url_for('jenkins.kpis') }}">
-    
-
 
 <!-- ═══════════════ SIDEBAR ═══════════════ -->
 <aside class="sidebar">
   <div class="sb-profile">
-    <div class="avatar">A</div>
+    <div class="avatar">{{ username[0]|upper if username else 'U' }}</div>
     <div>
-<div class="pname">{{ username }}</div>
-<div class="prole">{{ role }}</div>    </div>
+      <div class="pname">{{ username }}</div>
+      <div class="prole">{{ role }}</div>
+    </div>
     <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">☀️</button>
   </div>
 
-  <!-- Jenkins status — ONE block, no duplicate -->
   <div class="sb-jenkins">
-    <div class="pulse-dot {% if not connected %}pulse-dot-error{% endif %}"></div>
+    <div class="pulse-dot" id="statusDot"></div>
     <div>
       <div class="ji-label">Jenkins</div>
-      <div class="ji-val {% if connected %}ok{% else %}error{% endif %}">
-        {% if connected %}Connected{% else %}Disconnected{% endif %}
-      </div>
+      <div class="ji-val" id="statusVal">Checking...</div>
     </div>
     <button class="refresh-btn" id="refBtn" onclick="doRefresh()" title="Refresh">
-      <svg viewBox="0 0 24 24">
-        <path d="M1 4v6h6"/>
-        <path d="M23 20v-6h-6"/>
-        <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
-      </svg>
+      <svg viewBox="0 0 24 24"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
     </button>
   </div>
 
@@ -288,56 +277,44 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
       <span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
       <span class="nav-label">Overview</span>
     </div>
-
     <div class="nav-sep"></div>
-
     <div class="nav-item" onclick="setActive(this)">
       <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
       <span class="nav-label">Alerts</span>
       <span class="nav-badge">7</span>
     </div>
-
     <div class="nav-item" onclick="setActive(this)">
       <span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
       <span class="nav-label">Pipeline KPIs</span>
     </div>
-
     <div class="nav-item" onclick="setActive(this)">
       <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="12" y2="17"/></svg></span>
       <span class="nav-label">Pipeline Details</span>
     </div>
-
     <div class="nav-item" onclick="setActive(this)">
       <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg></span>
       <span class="nav-label">GitHub Repo</span>
     </div>
-
     <div class="nav-item" onclick="setActive(this)">
       <span class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><line x1="1.05" y1="12" x2="7" y2="12"/><line x1="17.01" y1="12" x2="22.96" y2="12"/></svg></span>
       <span class="nav-label">Last Code Changes</span>
       <span class="nav-badge green">3</span>
     </div>
-
     <div class="nav-sep"></div>
-
     <div class="nav-item" onclick="setActive(this)">
       <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span>
       <span class="nav-label">Deployment KPIs</span>
     </div>
-
     <div class="nav-item" onclick="setActive(this)">
       <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span>
       <span class="nav-label">PDF Reports</span>
     </div>
-
     <div class="nav-sep"></div>
-
     <div class="nav-item" onclick="setActive(this)">
       <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
       <span class="nav-label">Manage Users</span>
-      <span class="nav-badge">3</span>
+      <span class="nav-badge">{{ pending_count }}</span>
     </div>
-
     <div class="nav-item" onclick="setActive(this)">
       <span class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06-.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
       <span class="nav-label">Settings</span>
@@ -350,7 +327,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
       <span class="nav-label">AI Assistant</span>
       <span class="ai-badge">BETA</span>
     </div>
-    <div class="logout-row" onclick="window.location.href='/auth/logout'">
+    <div class="logout-row" onclick="window.location.href='{{ url_for('auth.logout') }}'">
       <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span>
       <span>Logout</span>
     </div>
@@ -359,13 +336,12 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 
 <!-- ═══════════════ MAIN ═══════════════ -->
 <main class="main">
-  <!-- topbar — clean, no stray nav snippets -->
   <div class="topbar">
     <div class="pipe-icon">⚙</div>
     <div>
       <div class="pipe-name">django-pipeline</div>
       <div class="pipe-meta">
-        Branch:&nbsp;<span class="branch-tag">main</span>&nbsp;·&nbsp;Build&nbsp;<span class="build-tag">#247</span>
+        Branch:&nbsp;<span class="branch-tag">main</span>&nbsp;·&nbsp;Build&nbsp;<span class="build-tag" id="latestBuildTag">#—</span>
       </div>
     </div>
     <div class="topbar-actions">
@@ -376,65 +352,33 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 
   <div class="page">
 
-    <!-- disconnected banner — only when Jenkins is down -->
-    {% if not connected %}
-    <div class="disconnected-banner">
+    <!-- Disconnected banner — JS controlled, starts hidden -->
+    <div class="disconnected-banner" id="disconnectedBanner">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
       Jenkins is unreachable. Check your connection settings and hit refresh to retry.
     </div>
-    {% endif %}
 
-    <!-- ── STAT ROW — 4 separate, self-contained cards ── -->
+    <!-- ── STAT ROW ── -->
     <div class="stat-row">
-
-      <!-- Card 1: Total Builds -->
       <div class="stat-card total">
-        <div class="stat-icon">
-          <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-        </div>
-        <div>
-          <div class="stat-label">Total Builds</div>
-          <div class="stat-value">{% if connected %}247{% else %}--{% endif %}</div>
-        </div>
+        <div class="stat-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+        <div><div class="stat-label">Total Builds</div><div class="stat-value" id="sv-total">--</div></div>
       </div>
-
-      <!-- Card 2: Successful -->
       <div class="stat-card success">
-        <div class="stat-icon">
-          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-        </div>
-        <div>
-          <div class="stat-label">Successful</div>
-          <div class="stat-value">{% if connected %}222{% else %}--{% endif %}</div>
-        </div>
+        <div class="stat-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <div><div class="stat-label">Successful</div><div class="stat-value" id="sv-success">--</div></div>
       </div>
-
-      <!-- Card 3: Failed -->
       <div class="stat-card failed">
-        <div class="stat-icon">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        </div>
-        <div>
-          <div class="stat-label">Failed</div>
-          <div class="stat-value">{% if connected %}18{% else %}--{% endif %}</div>
-        </div>
+        <div class="stat-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+        <div><div class="stat-label">Failed</div><div class="stat-value" id="sv-failed">--</div></div>
       </div>
-
-      <!-- Card 4: Aborted -->
       <div class="stat-card aborted">
-        <div class="stat-icon">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-        </div>
-        <div>
-          <div class="stat-label">Aborted</div>
-          <div class="stat-value" id="abortedCount">{% if connected %}1{% else %}--{% endif %}</div>
-        </div>
+        <div class="stat-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg></div>
+        <div><div class="stat-label">Aborted</div><div class="stat-value" id="sv-aborted">--</div></div>
       </div>
-
     </div>
-    <!-- end .stat-row -->
 
-    <!-- ── KPI + ACTIVE BUILDS ROW ── -->
+    <!-- ── KPI + ACTIVE BUILDS ── -->
     <div class="kpi-row">
 
       <!-- Health Score -->
@@ -442,23 +386,17 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
         <div class="circular-progress">
           <svg viewBox="0 0 60 60">
             <circle class="circle-bg" cx="30" cy="30" r="24"/>
-            <circle class="circle-progress" cx="30" cy="30" r="24"
-              style="stroke-dasharray:150.796;stroke-dashoffset:150.796;"
-              data-target="{% if connected %}15.08{% else %}150.796{% endif %}"/>
+            <circle class="circle-progress" cx="30" cy="30" r="24" style="stroke-dasharray:150.796;stroke-dashoffset:150.796;"/>
           </svg>
           <div class="progress-text">
-            <span class="progress-value" style="color:var(--green)">{% if connected %}90{% else %}0{% endif %}</span>
+            <span class="progress-value" id="health-val" style="color:var(--green)">0</span>
             <span class="progress-unit">%</span>
           </div>
         </div>
         <div>
           <div class="kpi-title">Health Score</div>
           <div class="kpi-sub">Pipeline health index</div>
-          {% if connected %}
-            <span class="kpi-badge green">↑ Excellent</span>
-          {% else %}
-            <span class="kpi-badge red">⚠ No data</span>
-          {% endif %}
+          <span class="kpi-badge red" id="health-badge">⚠ No data</span>
         </div>
       </div>
 
@@ -467,23 +405,17 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
         <div class="circular-progress">
           <svg viewBox="0 0 60 60">
             <circle class="circle-bg" cx="30" cy="30" r="24"/>
-            <circle class="circle-progress" cx="30" cy="30" r="24"
-              style="stroke-dasharray:150.796;stroke-dashoffset:150.796;"
-              data-target="{% if connected %}30.16{% else %}150.796{% endif %}"/>
+            <circle class="circle-progress" cx="30" cy="30" r="24" style="stroke-dasharray:150.796;stroke-dashoffset:150.796;"/>
           </svg>
           <div class="progress-text">
-            <span class="progress-value" style="color:var(--blue)">{% if connected %}80{% else %}0{% endif %}</span>
+            <span class="progress-value" id="rate-val" style="color:var(--blue)">0</span>
             <span class="progress-unit">%</span>
           </div>
         </div>
         <div>
           <div class="kpi-title">Success Rate</div>
           <div class="kpi-sub">Last 30 days</div>
-          {% if connected %}
-            <span class="kpi-badge blue">↑ +7% vs last month</span>
-          {% else %}
-            <span class="kpi-badge red">⚠ No data</span>
-          {% endif %}
+          <span class="kpi-badge red" id="rate-badge">⚠ No data</span>
         </div>
       </div>
 
@@ -491,132 +423,73 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
       <div class="active-builds-card">
         <div class="ab-header">
           <div class="ab-title">Active Builds</div>
-          <span class="ab-count" id="activeCountBadge">
-            {% if connected %}2 running{% else %}0 running{% endif %}
-          </span>
+          <span class="ab-count" id="activeCountBadge">0 running</span>
         </div>
-        <div class="build-lines">
-          {% if connected %}
-          <div class="build-line" id="bl-258">
-            <div class="bl-top">
-              <div class="bl-id">#258</div>
-              <div class="bl-meta">
-                <div class="bl-duration" id="bl-258-dur">2m 14s</div>
-                <button class="bl-abort" onclick="abortBuild('258')" title="Abort">
-                  <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                </button>
-              </div>
-            </div>
-            <div class="bl-progress-track"><div class="bl-progress-fill" id="bl-258-fill" style="width:63%"></div></div>
-            <div class="bl-footer">
-              <span class="bl-stage" id="bl-258-stage">Running: unit tests</span>
-              <span class="bl-pct" id="bl-258-pct">63%</span>
-            </div>
-          </div>
-          <div class="build-line" id="bl-259">
-            <div class="bl-top">
-              <div class="bl-id">#259</div>
-              <div class="bl-meta">
-                <div class="bl-duration" id="bl-259-dur">0m 47s</div>
-                <button class="bl-abort" onclick="abortBuild('259')" title="Abort">
-                  <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                </button>
-              </div>
-            </div>
-            <div class="bl-progress-track"><div class="bl-progress-fill" id="bl-259-fill" style="width:21%"></div></div>
-            <div class="bl-footer">
-              <span class="bl-stage" id="bl-259-stage">Running: install deps</span>
-              <span class="bl-pct" id="bl-259-pct">21%</span>
-            </div>
-          </div>
-          {% else %}
-          <div class="no-builds">No active builds — Jenkins is disconnected</div>
-          {% endif %}
+        <div class="build-lines" id="activeBuildLines">
+          <div class="no-builds">Checking...</div>
         </div>
       </div>
 
     </div>
-    <!-- end .kpi-row -->
 
     <!-- ── CHARTS ── -->
     <div class="charts-grid">
+
+      <!-- Card 1: Latest 10 Builds bar chart -->
       <div class="chart-card">
         <div class="chart-hdr">
-          <div><div class="chart-title">Latest 10 Builds</div><div class="chart-sub">Build status</div></div>
+          <div><div class="chart-title">Latest 10 Builds</div><div class="chart-sub">Duration by result</div></div>
         </div>
-        {% if connected %}
-        <div class="build-status-row">
-          <div class="bstat pass"><div class="bstat-dot"></div>8 Pass</div>
-          <div class="bstat fail"><div class="bstat-dot"></div>2 Fail</div>
+        <div class="build-status-row" id="buildSummaryRow"></div>
+        <div class="bars-wrap" id="barsWrap">
+          <div class="no-builds" style="width:100%;text-align:center;">Loading build data...</div>
         </div>
-        <div class="bars-wrap">
-          <div class="bar-col"><div class="bar-tooltip">#257 · PASS · 3m 42s</div><div class="bar pass" style="height:95%"></div><div class="bar-lbl">#257</div></div>
-          <div class="bar-col"><div class="bar-tooltip">#256 · PASS · 3m 28s</div><div class="bar pass" style="height:88%"></div><div class="bar-lbl">#256</div></div>
-          <div class="bar-col"><div class="bar-tooltip">#255 · FAIL · Timeout</div><div class="bar fail" style="height:72%"></div><div class="bar-lbl">#255</div></div>
-          <div class="bar-col"><div class="bar-tooltip">#254 · PASS · 3m 15s</div><div class="bar pass" style="height:85%"></div><div class="bar-lbl">#254</div></div>
-          <div class="bar-col"><div class="bar-tooltip">#253 · PASS · 3m 38s</div><div class="bar pass" style="height:92%"></div><div class="bar-lbl">#253</div></div>
-          <div class="bar-col"><div class="bar-tooltip">#252 · PASS · 3m 12s</div><div class="bar pass" style="height:82%"></div><div class="bar-lbl">#252</div></div>
-          <div class="bar-col"><div class="bar-tooltip">#251 · PASS · 2m 58s</div><div class="bar pass" style="height:78%"></div><div class="bar-lbl">#251</div></div>
-          <div class="bar-col"><div class="bar-tooltip">#250 · FAIL · Test error</div><div class="bar fail" style="height:65%"></div><div class="bar-lbl">#250</div></div>
-          <div class="bar-col"><div class="bar-tooltip">#249 · PASS · 3m 32s</div><div class="bar pass" style="height:90%"></div><div class="bar-lbl">#249</div></div>
-          <div class="bar-col"><div class="bar-tooltip">#248 · PASS · 3m 22s</div><div class="bar pass" style="height:86%"></div><div class="bar-lbl">#248</div></div>
-        </div>
-        {% else %}
-        <div class="no-builds">No build data available</div>
-        {% endif %}
       </div>
 
+      <!-- Card 2: Build Trends SVG line chart -->
       <div class="chart-card">
         <div class="chart-hdr">
-          <div><div class="chart-title">Build Trends</div></div>
-          {% if connected %}<span class="cbadge cbadge-g">↑ 11%</span>{% endif %}
+          <div><div class="chart-title">Build Trends</div><div class="chart-sub">Success rate over time</div></div>
+          <span class="cbadge cbadge-g" id="trendBadge">↑ —</span>
         </div>
-        {% if connected %}
         <div class="chart-area">
-          <svg class="chart-svg" viewBox="0 0 420 170" preserveAspectRatio="none">
+          <svg class="chart-svg" id="trendSvg" viewBox="0 0 420 170" preserveAspectRatio="none">
             <defs>
               <linearGradient id="tg2" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stop-color="#00dba0" stop-opacity=".25"/>
                 <stop offset="100%" stop-color="#00dba0" stop-opacity="0"/>
               </linearGradient>
             </defs>
+            <!-- grid lines -->
             <line x1="36" y1="18"  x2="412" y2="18"  class="grid-line" stroke="var(--text)"/>
             <line x1="36" y1="58"  x2="412" y2="58"  class="grid-line" stroke="var(--text)"/>
             <line x1="36" y1="98"  x2="412" y2="98"  class="grid-line" stroke="var(--text)"/>
             <line x1="36" y1="138" x2="412" y2="138" class="grid-line" stroke="var(--text)"/>
+            <!-- y-axis labels -->
             <text x="32" y="22"  class="axis-label" text-anchor="end">100%</text>
-            <text x="32" y="62"  class="axis-label" text-anchor="end">85%</text>
-            <text x="32" y="102" class="axis-label" text-anchor="end">70%</text>
-            <text x="32" y="142" class="axis-label" text-anchor="end">55%</text>
-            <path d="M36,138 C96,136 156,132 216,128 C276,124 336,118 412,112 L412,138 Z" fill="rgba(255,69,96,.07)"/>
-            <path d="M36,138 C96,136 156,132 216,128 C276,124 336,118 412,112" stroke="rgba(255,69,96,.35)" stroke-width="1.5" fill="none" stroke-dasharray="4,3"/>
-            <path d="M36,128 C96,122 156,110 216,98 C276,86 336,68 412,52 L412,138 L36,138 Z" fill="url(#tg2)"/>
-            <path d="M36,128 C96,122 156,110 216,98 C276,86 336,68 412,52" stroke="#00dba0" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-            <circle cx="36"  cy="128" r="4" fill="#00dba0"/>
-            <circle cx="96"  cy="122" r="4" fill="#00dba0"/>
-            <circle cx="156" cy="110" r="4" fill="#00dba0"/>
-            <circle cx="216" cy="98"  r="4" fill="#00dba0"/>
-            <circle cx="276" cy="86"  r="4" fill="#00dba0"/>
-            <circle cx="336" cy="68"  r="4" fill="#00dba0"/>
-            <circle cx="412" cy="52"  r="5" fill="#00dba0" stroke="white" stroke-width="2"/>
-            <text x="36"  y="158" class="axis-label" text-anchor="middle">Sep</text>
-            <text x="96"  y="158" class="axis-label" text-anchor="middle">Oct</text>
-            <text x="156" y="158" class="axis-label" text-anchor="middle">Nov</text>
-            <text x="216" y="158" class="axis-label" text-anchor="middle">Dec</text>
-            <text x="276" y="158" class="axis-label" text-anchor="middle">Jan</text>
-            <text x="336" y="158" class="axis-label" text-anchor="middle">Feb</text>
-            <text x="412" y="158" class="axis-label" text-anchor="middle">Mar</text>
+            <text x="32" y="62"  class="axis-label" text-anchor="end">66%</text>
+            <text x="32" y="102" class="axis-label" text-anchor="end">33%</text>
+            <text x="32" y="142" class="axis-label" text-anchor="end">0%</text>
+            <!-- fail area (underneath) -->
+            <path id="trendFailArea" d="" fill="rgba(255,69,96,.07)"/>
+            <path id="trendFailLine" d="" stroke="rgba(255,69,96,.35)" stroke-width="1.5" fill="none" stroke-dasharray="4,3"/>
+            <!-- success area + line -->
+            <path id="trendSuccessArea" d="" fill="url(#tg2)"/>
+            <path id="trendSuccessLine" d="" stroke="#00dba0" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <!-- dots injected by JS -->
+            <g id="trendDots"></g>
+            <!-- x-axis labels injected by JS -->
+            <g id="trendXLabels"></g>
           </svg>
         </div>
         <div class="chart-legend">
           <div class="leg-item"><div class="leg-dot" style="background:var(--green)"></div>Successes</div>
           <div class="leg-item"><div class="leg-dot" style="background:var(--red);opacity:.6"></div>Failures</div>
         </div>
-        {% else %}
-        <div class="no-builds">No trend data available</div>
-        {% endif %}
       </div>
+
     </div>
+    <!-- end .charts-grid -->
 
   </div>
 </main>
@@ -632,7 +505,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
     <div class="msg bot"><div class="bubble">Hey 👋 I'm your Jenkins assistant. Ask me about build status, coverage, failures, or deployments.</div><div class="msg-time">just now</div></div>
   </div>
   <div class="chat-sugg" id="chatSugg">
-    <div class="sugg" onclick="useSugg(this)">Why did #243 fail?</div>
+    <div class="sugg" onclick="useSugg(this)">Why did the last build fail?</div>
     <div class="sugg" onclick="useSugg(this)">Coverage trend?</div>
     <div class="sugg" onclick="useSugg(this)">Slowest builds</div>
     <div class="sugg" onclick="useSugg(this)">Deploy status</div>
@@ -646,7 +519,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 <div class="toast" id="toast"></div>
 
 <script>
-// ── Theme (same localStorage key as auth pages)
+// ── Theme
 function toggleTheme(){
   const r=document.documentElement,dark=r.getAttribute('data-theme')==='dark';
   r.setAttribute('data-theme',dark?'light':'dark');
@@ -659,27 +532,15 @@ function toggleTheme(){
   document.getElementById('themeBtn').textContent=sv==='dark'?'☀️':'🌙';
 })();
 
-// ── Circular progress animate on load
-window.addEventListener('load',()=>{
-  document.querySelectorAll('.circle-progress[data-target]').forEach(el=>{
-    setTimeout(()=>{ el.style.strokeDashoffset=parseFloat(el.dataset.target); },100);
-  });
-});
-
-// ── Nav active state
 function setActive(el){
   document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
   el.classList.add('active');
 }
-
-// ── Refresh — reloads page so Flask re-checks Jenkins connection
 function doRefresh(){
   const b=document.getElementById('refBtn');
   b.classList.add('spin');
-  setTimeout(()=>{ window.location.reload(); },700);
+  setTimeout(()=>window.location.reload(),700);
 }
-
-// ── Start / Stop build toggle
 let building=false;
 function toggleBuild(){
   building=!building;
@@ -687,46 +548,6 @@ function toggleBuild(){
   btn.textContent=building?'■ Stop Build':'▶ Start Build';
   btn.classList.toggle('btn-stop',building);
   btn.classList.toggle('btn-green',!building);
-}
-
-// ── Live progress ticker (only active when connected)
-const builds={'258':{pct:63,elapsed:134,aborted:false},'259':{pct:21,elapsed:47,aborted:false}};
-function stageForPct(p){
-  if(p<20)return 'Running: install deps';
-  if(p<40)return 'Running: lint';
-  if(p<65)return 'Running: unit tests';
-  if(p<85)return 'Running: integration tests';
-  return 'Running: build image';
-}
-setInterval(()=>{
-  ['258','259'].forEach(id=>{
-    const b=builds[id]; if(b.aborted)return;
-    const fill=document.getElementById('bl-'+id+'-fill'); if(!fill)return;
-    b.elapsed++; b.pct=Math.min(b.pct+(id==='258'?0.18:0.28),99);
-    fill.style.width=b.pct+'%';
-    document.getElementById('bl-'+id+'-pct').textContent=Math.round(b.pct)+'%';
-    document.getElementById('bl-'+id+'-stage').textContent=stageForPct(b.pct);
-    const m=Math.floor(b.elapsed/60),s=b.elapsed%60;
-    document.getElementById('bl-'+id+'-dur').textContent=m+'m '+String(s).padStart(2,'0')+'s';
-  });
-},1000);
-
-// ── Abort build
-let abortedTotal=1;
-function abortBuild(id){
-  const b=builds[id]; if(!b||b.aborted)return;
-  b.aborted=true;
-  const line=document.getElementById('bl-'+id);
-  const fill=document.getElementById('bl-'+id+'-fill');
-  const stage=document.getElementById('bl-'+id+'-stage');
-  if(fill){fill.style.background='var(--orange)';fill.style.boxShadow='none';}
-  if(stage)stage.textContent='Aborted';
-  line.classList.add('aborted');
-  abortedTotal++;
-  document.getElementById('abortedCount').textContent=abortedTotal;
-  document.getElementById('activeCountBadge').textContent=
-    ['258','259'].filter(x=>!builds[x].aborted).length+' running';
-  showToast('Build #'+id+' aborted','abort-toast');
 }
 
 // ── Chatbot
@@ -738,52 +559,40 @@ function toggleChat(){
 }
 function resize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,78)+'px';}
 function onKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}}
-function useSugg(el){
-  document.getElementById('chatInput').value=el.textContent;
-  document.getElementById('chatSugg').style.display='none';
-  send();
-}
+function useSugg(el){document.getElementById('chatInput').value=el.textContent;document.getElementById('chatSugg').style.display='none';send();}
 function nowStr(){return new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});}
 function addMsg(txt,role){
   const box=document.getElementById('chatMsgs');
-  const d=document.createElement('div'); d.className='msg '+role;
+  const d=document.createElement('div');d.className='msg '+role;
   d.innerHTML=`<div class="bubble">${txt}</div><div class="msg-time">${nowStr()}</div>`;
-  box.appendChild(d); box.scrollTop=box.scrollHeight;
+  box.appendChild(d);box.scrollTop=box.scrollHeight;
 }
-function showTyping(){
-  const box=document.getElementById('chatMsgs');
-  const t=document.createElement('div'); t.className='typing-bbl'; t.id='typing';
-  t.innerHTML='<span></span><span></span><span></span>';
-  box.appendChild(t); box.scrollTop=box.scrollHeight;
-}
+function showTyping(){const box=document.getElementById('chatMsgs');const t=document.createElement('div');t.className='typing-bbl';t.id='typing';t.innerHTML='<span></span><span></span><span></span>';box.appendChild(t);box.scrollTop=box.scrollHeight;}
 function hideTyping(){const t=document.getElementById('typing');if(t)t.remove();}
 const BOT=[
-  {p:/fail|#243|error/i, r:"Build #243 failed due to a timeout in <code>test_auth_flow</code> — exceeded the 3m limit."},
-  {p:/coverage|trend/i,  r:"Coverage climbed from 72% → 87.3%. Biggest jump in W6 after auth module tests landed."},
-  {p:/slow|duration/i,   r:"Slowest builds: #243 (4m 32s) and #244 (4m 08s)."},
-  {p:/deploy|status/i,   r:"14 deployments this week. Last prod deploy 2h ago — all health checks passed."},
-  {p:/hello|hi|hey/i,    r:"Hey! What would you like to know about django-pipeline?"},
-  {p:/success|rate/i,    r:"Success rate is 80% over 30 days — up from 73% two months ago."},
-  {p:/health/i,          r:"Pipeline health 90% — Excellent. Queue times averaging under 8s."},
+  {p:/fail|error/i,      r:"The last failure was likely due to a test timeout or environment issue. Check the build console for details."},
+  {p:/coverage|trend/i,  r:"Coverage has been trending upward. Check the Pipeline KPIs section for the full breakdown."},
+  {p:/slow|duration/i,   r:"The slowest builds are usually the ones running full integration test suites."},
+  {p:/deploy|status/i,   r:"Last deployment completed successfully. All health checks passed."},
+  {p:/hello|hi|hey/i,    r:"Hey! What would you like to know about your pipeline?"},
+  {p:/success|rate/i,    r:"Your current success rate is shown in the KPI circles on the dashboard."},
+  {p:/health/i,          r:"Health score reflects the ratio of successful builds over the last 10 runs."},
 ];
-function getBotReply(m){
-  for(const b of BOT)if(b.p.test(m))return b.r;
-  return "I don't have specific data on that yet. Try asking about failures, coverage, or deployments.";
-}
+function getBotReply(m){for(const b of BOT)if(b.p.test(m))return b.r;return "I don't have specific data on that yet. Try asking about failures, coverage, or deployments.";}
 async function send(){
   const inp=document.getElementById('chatInput');
-  const txt=inp.value.trim(); if(!txt)return;
-  addMsg(txt,'user'); inp.value=''; inp.style.height='auto';
+  const txt=inp.value.trim();if(!txt)return;
+  addMsg(txt,'user');inp.value='';inp.style.height='auto';
   document.getElementById('chatSugg').style.display='none';
   showTyping();
   await new Promise(r=>setTimeout(r,800+Math.random()*600));
-  hideTyping(); addMsg(getBotReply(txt),'bot');
+  hideTyping();addMsg(getBotReply(txt),'bot');
 }
 
 // ── Toast
 function showToast(msg,cls=''){
   const t=document.getElementById('toast');
-  t.textContent=msg; t.className='toast '+(cls||''); t.classList.add('show');
+  t.textContent=msg;t.className='toast '+(cls||'');t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),3000);
 }
 
@@ -793,39 +602,46 @@ function exportPDF(){
   const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
   const dark=document.documentElement.getAttribute('data-theme')==='dark';
   const ts=new Date().toLocaleString();
-  doc.setFillColor(dark?11:240,dark?11:240,dark?18:248); doc.rect(0,0,297,210,'F');
-  doc.setFillColor(124,111,255); doc.rect(0,0,297,22,'F');
-  doc.setTextColor(255,255,255); doc.setFontSize(14); doc.setFont('helvetica','bold');
+  doc.setFillColor(dark?11:240,dark?11:240,dark?18:248);doc.rect(0,0,297,210,'F');
+  doc.setFillColor(124,111,255);doc.rect(0,0,297,22,'F');
+  doc.setTextColor(255,255,255);doc.setFontSize(14);doc.setFont('helvetica','bold');
   doc.text('Jenkins Monitor — KPI Report',14,13);
-  doc.setFontSize(8); doc.setFont('helvetica','normal');
-  doc.text(`Generated: ${ts}  |  Pipeline: django-pipeline  |  Branch: main  |  Build #247`,14,20);
+  doc.setFontSize(8);doc.setFont('helvetica','normal');
+  doc.text(`Generated: ${ts}  |  Pipeline: django-pipeline  |  Branch: main`,14,20);
+  const total=document.getElementById('sv-total').textContent;
+  const succ=document.getElementById('sv-success').textContent;
+  const fail=document.getElementById('sv-failed').textContent;
+  const abrt=document.getElementById('sv-aborted').textContent;
+  const health=document.getElementById('health-val').textContent+'%';
+  const rate=document.getElementById('rate-val').textContent+'%';
   const kpis=[
-    {l:'Total Builds', v:'247',                       s:'All time',    c:[124,111,255]},
-    {l:'Successful',   v:'222',                       s:'Last 30 days',c:[0,219,160]},
-    {l:'Failed',       v:'18',                        s:'Last 30 days',c:[255,69,96]},
-    {l:'Aborted',      v:String(abortedTotal),        s:'Last 30 days',c:[255,140,66]},
-    {l:'Health Score', v:'90%',                       s:'Excellent',   c:[0,219,160]},
-    {l:'Success Rate', v:'80%',                       s:'Last 30 days',c:[58,184,248]},
+    {l:'Total Builds',v:total,s:'All time',c:[124,111,255]},
+    {l:'Successful',v:succ,s:'Last 30 days',c:[0,219,160]},
+    {l:'Failed',v:fail,s:'Last 30 days',c:[255,69,96]},
+    {l:'Aborted',v:abrt,s:'Last 30 days',c:[255,140,66]},
+    {l:'Health Score',v:health,s:'Index',c:[0,219,160]},
+    {l:'Success Rate',v:rate,s:'Last 30 days',c:[58,184,248]},
   ];
   doc.setTextColor(dark?190:40,dark?190:40,dark?210:60);
-  doc.setFontSize(9); doc.setFont('helvetica','bold');
+  doc.setFontSize(9);doc.setFont('helvetica','bold');
   doc.text('KEY PERFORMANCE INDICATORS',14,32);
   kpis.forEach((k,i)=>{
     const x=14+i*47,y=36,w=44,h=30,[r,g,b]=k.c;
-    doc.setFillColor(dark?18:255,dark?18:255,dark?28:255); doc.roundedRect(x,y,w,h,3,3,'F');
-    doc.setFillColor(r,g,b); doc.roundedRect(x,y,w,3,1,1,'F');
+    doc.setFillColor(dark?18:255,dark?18:255,dark?28:255);doc.roundedRect(x,y,w,h,3,3,'F');
+    doc.setFillColor(r,g,b);doc.roundedRect(x,y,w,3,1,1,'F');
     doc.setTextColor(dark?120:100,dark?120:100,dark?150:130);
-    doc.setFontSize(6.5); doc.setFont('helvetica','bold');
+    doc.setFontSize(6.5);doc.setFont('helvetica','bold');
     doc.text(k.l.toUpperCase(),x+3,y+9);
-    doc.setTextColor(r,g,b); doc.setFontSize(13); doc.setFont('helvetica','bold');
+    doc.setTextColor(r,g,b);doc.setFontSize(13);doc.setFont('helvetica','bold');
     doc.text(k.v,x+3,y+20);
     doc.setTextColor(dark?120:100,dark?120:100,dark?150:130);
-    doc.setFontSize(6.5); doc.setFont('helvetica','normal');
+    doc.setFontSize(6.5);doc.setFont('helvetica','normal');
     doc.text(k.s,x+3,y+27);
   });
   doc.save(`jenkins-report-${Date.now()}.pdf`);
   showToast('PDF exported successfully');
 }
 </script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 </body>
 </html>
