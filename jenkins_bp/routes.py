@@ -1,27 +1,31 @@
-from flask import session, redirect, url_for, jsonify
+from functools import wraps
+from flask import session, redirect, url_for, jsonify, render_template
 from jenkins_bp import jenkins_bp
 from .fetcher import check_connection, get_kpis
 
+def role_required(*roles):
+    def decorator(f):
+        @wraps(f)
+        def decorated(*args, **kwargs):
+            if session.get('role') not in roles:
+                return redirect(url_for('auth.login'))
+            return f(*args, **kwargs)
+        return decorated
+    return decorator
 
+@jenkins_bp.route('/dashboard')
+@role_required('admin', 'dev', 'qa')
+def dashboard():
+    return render_template('admin/dashboard.html',
+                           username=session.get('username'),
+                           role=session.get('role'))
 
-#dashboard
-def admin_only(f):
-    from functools import wraps
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if session.get('role') != 'admin':
-            return redirect(url_for('auth.login'))
-        return f(*args, **kwargs)
-    return decorated_function
-
-@jenkins_bp.route('/kpis')
-#@admin_only
+@jenkins_bp.route('/api/kpis')
+@role_required('admin', 'dev', 'qa')
 def kpis():
-    data = get_kpis()
-    return jsonify(data)
+    return jsonify(get_kpis())
 
-@jenkins_bp.route('/status')
-#@admin_only
+@jenkins_bp.route('/api/status')
+@role_required('admin', 'dev', 'qa')
 def status():
     return jsonify({'connected': check_connection()})
-

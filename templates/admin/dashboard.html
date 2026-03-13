@@ -251,16 +251,17 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 @keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
 </style>
 </head>
-<body>
+<body data-kpis-url="{{ url_for('jenkins.kpis') }}">
+    
+
 
 <!-- ═══════════════ SIDEBAR ═══════════════ -->
 <aside class="sidebar">
   <div class="sb-profile">
     <div class="avatar">A</div>
     <div>
-      <div class="pname">Admin</div>
-      <div class="prole">super-admin@gmail.com</div>
-    </div>
+<div class="pname">{{ username }}</div>
+<div class="prole">{{ role }}</div>    </div>
     <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">☀️</button>
   </div>
 
