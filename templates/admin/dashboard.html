@@ -626,14 +626,7 @@ function doRefresh(){
   b.classList.add('spin');
   setTimeout(()=>window.location.reload(),700);
 }
-let building=false;
-function toggleBuild(){
-  building=!building;
-  const btn=document.getElementById('startStopBtn');
-  btn.textContent=building?'■ Stop Build':'▶ Start Build';
-  btn.classList.toggle('btn-stop',building);
-  btn.classList.toggle('btn-green',!building);
-}
+
 
 // ── Chatbot
 let chatOpen=false;

@@ -1,11 +1,579 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pipeline KPIs</title>
-</head>
-<body>
-    
-</body>
-</html>
+{% extends 'base.html' %}
+
+{% block title %}Pipeline KPIs — Jenkins Monitor{% endblock %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/sidebar.css') }}"/>
+<style>
+.kpi-card{ animation:fadeUp .5s ease both; }
+.kpi-card:nth-child(1){ animation-delay:.04s; }
+.kpi-card:nth-child(2){ animation-delay:.09s; }
+
+.timeline-card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:14px;overflow:visible;
+  animation:fadeUp .5s ease both;animation-delay:.14s;
+  margin-top:14px;
+}
+.timeline-hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 20px 14px;
+  border-bottom:1px solid var(--border);
+}
+.timeline-title{font-size:13.5px;font-weight:800;letter-spacing:-.02em;}
+.timeline-sub{font-size:10.5px;color:var(--text2);margin-top:2px;}
+.tl-right{display:flex;align-items:center;gap:8px;}
+.tl-badge-run{
+  font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace;
+  padding:3px 9px;border-radius:5px;
+  background:rgba(58,184,248,.1);color:var(--blue);
+  border:1px solid rgba(58,184,248,.2);
+}
+.show-more-btn{
+  padding:5px 13px;border-radius:7px;
+  background:transparent;border:1px solid var(--border2);
+  color:var(--text2);font-size:11px;font-weight:600;
+  cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;
+  transition:background .15s,color .15s,border-color .15s;
+  white-space:nowrap;
+}
+.show-more-btn:hover{background:var(--bg3);color:var(--text);border-color:var(--accent);}
+
+/* ── 4-column grid (no duration) ── */
+.tl-col-header{
+  display:grid;
+  grid-template-columns:80px 12px 1fr 110px;
+  gap:14px;align-items:center;
+  padding:7px 20px;
+  font-size:9.5px;font-weight:700;color:var(--text2);
+  letter-spacing:.06em;text-transform:uppercase;
+  background:var(--bg3);
+  border-bottom:1px solid var(--border);
+}
+.build-row{
+  display:grid;
+  grid-template-columns:80px 12px 1fr 110px;
+  gap:14px;align-items:center;
+  padding:14px 20px;
+  cursor:pointer;
+  border-bottom:1px solid var(--border);
+  transition:background .12s;
+  position:relative;
+}
+.build-row:last-child{border-bottom:none;}
+.build-row:hover{background:var(--bg3);}
+.build-row.is-running{background:rgba(58,184,248,.03);}
+.build-row.is-running:hover{background:rgba(58,184,248,.07);}
+
+.br-num{font-size:12.5px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--accent);}
+.br-date{font-size:9px;color:var(--text2);margin-top:3px;}
+
+.br-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.br-dot.pass{background:var(--green);}
+.br-dot.fail{background:var(--red);}
+.br-dot.abrt{background:var(--orange);}
+.br-dot.run{background:var(--blue);animation:pulse-run 1.4s ease-in-out infinite;}
+@keyframes pulse-run{
+  0%,100%{box-shadow:0 0 0 3px rgba(58,184,248,.2);}
+  50%    {box-shadow:0 0 0 6px rgba(58,184,248,.04);}
+}
+
+/* ── STAGE SEGMENTS ── */
+.stage-strip{display:flex;align-items:center;gap:3px;}
+.seg{
+  height:8px;
+  flex:1;
+  min-width:12px;
+  max-width:72px;   /* wider now that duration column is gone */
+  border-radius:4px;
+  position:relative;
+  cursor:pointer;
+  transition:height .1s,filter .1s,transform .1s;
+}
+.seg:hover{height:14px;filter:brightness(1.2);transform:translateY(-2px);z-index:10;}
+.seg.ok  {background:var(--green);}
+.seg.fail{background:var(--red);}
+.seg.skip{background:var(--bg4);border:1px solid var(--border2);}
+.seg.run {
+  background:linear-gradient(90deg,var(--blue) 0%,rgba(58,184,248,.3) 50%,var(--blue) 100%);
+  background-size:200% 100%;
+  animation:seg-shimmer 1.1s linear infinite;
+}
+@keyframes seg-shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
+
+/* ── TOOLTIP ── */
+.seg-tip{
+  position:fixed;
+  background:var(--bg);border:1px solid var(--border2);
+  border-radius:9px;padding:8px 13px;
+  font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--text);
+  white-space:nowrap;pointer-events:none;z-index:9999;
+  box-shadow:0 6px 24px rgba(0,0,0,.5);
+  opacity:0;transition:opacity .1s;
+}
+.seg-tip.show{opacity:1;}
+.st-name{font-size:12px;font-weight:700;margin-bottom:3px;}
+.st-dur {font-size:10.5px;color:var(--text2);margin-bottom:5px;}
+.st-status{font-size:10px;font-weight:700;}
+.st-status.ok  {color:var(--green);}
+.st-status.fail{color:var(--red);}
+.st-status.run {color:var(--blue);}
+.st-status.skip{color:var(--text2);}
+.st-hint{font-size:9.5px;color:var(--accent);margin-top:4px;font-family:'Plus Jakarta Sans',sans-serif;}
+
+/* result badge */
+.br-result{
+  font-size:10.5px;font-weight:700;font-family:'JetBrains Mono',monospace;
+  padding:4px 10px;border-radius:6px;white-space:nowrap;display:inline-block;
+}
+.br-result.pass{background:rgba(0,219,160,.12);color:var(--green);}
+.br-result.fail{background:rgba(255,69,96,.12);color:var(--red);}
+.br-result.abrt{background:rgba(255,140,66,.12);color:var(--orange);}
+.br-result.run {background:rgba(58,184,248,.12);color:var(--blue);}
+
+/* console hint on hover */
+.br-console{font-size:9.5px;color:var(--accent);font-weight:600;opacity:0;transition:opacity .15s;margin-top:3px;}
+.build-row:hover .br-console{opacity:1;}
+
+/* running progress bar */
+.run-bar{position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--bg4);}
+.run-bar-fill{
+  height:100%;background:linear-gradient(90deg,var(--blue),var(--accent));
+  transition:width .5s ease;position:relative;overflow:hidden;
+}
+.run-bar-fill::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);
+  animation:bar-shine 1.2s ease-in-out infinite;
+}
+@keyframes bar-shine{0%{transform:translateX(-100%);}100%{transform:translateX(200%);}}
+
+.tl-empty{padding:32px;text-align:center;color:var(--text2);font-size:12.5px;}
+.no-stage-txt{font-size:10px;color:var(--text2);font-style:italic;}
+</style>
+{% endblock %}
+
+{% block body %}
+{% set active_page = 'pipeline_kpis' %}
+{% include 'admin/_sidebar.html' %}
+
+<!-- Tooltip -->
+<div class="seg-tip" id="segTip">
+  <div class="st-name"   id="stName"></div>
+  <div class="st-dur"    id="stDur"></div>
+  <div class="st-status" id="stStatus"></div>
+  <div class="st-hint">click to open console</div>
+</div>
+
+<main class="main" data-pipeline-kpis-url="{{ url_for('jenkins.pipeline_kpis_api') }}">
+  <div class="topbar">
+    <div class="pipe-icon" style="background:linear-gradient(135deg,#ff6584,#f5c542);">⚙</div>
+    <div>
+      <div class="pipe-name">django-pipeline</div>
+      <div class="pipe-meta">
+        Branch:&nbsp;<span class="branch-tag">main</span>
+        &nbsp;·&nbsp;Build&nbsp;<span class="build-tag" id="latestBuildTag">#—</span>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn btn-green" id="startBuildBtn" onclick="triggerBuild()">▶ Start Build</button>
+    </div>
+  </div>
+
+  <div class="page">
+
+    <!-- KPI CIRCLES -->
+    <div class="kpi-row">
+      <div class="kpi-card health">
+        <div class="circular-progress">
+          <svg viewBox="0 0 60 60">
+            <circle class="circle-bg" cx="30" cy="30" r="24"/>
+            <circle class="circle-progress" id="healthCircle" cx="30" cy="30" r="24"
+              style="stroke-dasharray:150.796;stroke-dashoffset:150.796;"/>
+          </svg>
+          <div class="progress-text">
+            <span class="progress-value" id="health-val" style="color:var(--green)">0</span>
+            <span class="progress-unit">%</span>
+          </div>
+        </div>
+        <div>
+          <div class="kpi-title">Health Score</div>
+          <div class="kpi-sub">Pipeline health index</div>
+          <span class="kpi-badge red" id="health-badge">⚠ No data</span>
+        </div>
+      </div>
+
+      <div class="kpi-card success-rate">
+        <div class="circular-progress">
+          <svg viewBox="0 0 60 60">
+            <circle class="circle-bg" cx="30" cy="30" r="24"/>
+            <circle class="circle-progress" id="rateCircle" cx="30" cy="30" r="24"
+              style="stroke-dasharray:150.796;stroke-dashoffset:150.796;"/>
+          </svg>
+          <div class="progress-text">
+            <span class="progress-value" id="rate-val" style="color:var(--blue)">0</span>
+            <span class="progress-unit">%</span>
+          </div>
+        </div>
+        <div>
+          <div class="kpi-title">Success Rate</div>
+          <div class="kpi-sub">Last 10 builds</div>
+          <span class="kpi-badge red" id="rate-badge">⚠ No data</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- BUILD TIMELINE -->
+    <div class="timeline-card">
+      <div class="timeline-hdr">
+        <div>
+          <div class="timeline-title">Build  History</div>
+          <div class="timeline-sub">Hover a segment = stage name &nbsp;·&nbsp; click row = console log</div>
+        </div>
+        <div class="tl-right">
+          <span class="tl-badge-run" id="runningBadge" style="display:none;"></span>
+          <button class="show-more-btn" id="showMoreBtn"
+                  onclick="toggleShowMore()" style="display:none;">Show more ↓</button>
+        </div>
+      </div>
+
+      <div class="tl-col-header">
+        <span>Build</span>
+        <span></span>
+        <span>Stages</span>
+        <span>Result</span>
+      </div>
+
+      <div id="buildTimeline">
+        <!-- skeletons -->
+        <div class="build-row" style="pointer-events:none;">
+          <div><div class="skeleton" style="height:13px;width:40px;margin-bottom:5px;"></div><div class="skeleton" style="height:9px;width:65px;"></div></div>
+          <div class="skeleton" style="height:10px;width:10px;border-radius:50%;"></div>
+          <div style="display:flex;gap:3px;align-items:center;flex:1;">
+            <div class="skeleton" style="height:8px;flex:1;border-radius:4px;"></div>
+            <div class="skeleton" style="height:8px;flex:1;border-radius:4px;"></div>
+            <div class="skeleton" style="height:8px;flex:1;border-radius:4px;"></div>
+            <div class="skeleton" style="height:8px;flex:1;border-radius:4px;"></div>
+            <div class="skeleton" style="height:8px;flex:1;border-radius:4px;"></div>
+            <div class="skeleton" style="height:8px;flex:1;border-radius:4px;"></div>
+          </div>
+          <div class="skeleton" style="height:24px;width:80px;border-radius:6px;"></div>
+        </div>
+        <div class="build-row" style="pointer-events:none;opacity:.5;">
+          <div><div class="skeleton" style="height:13px;width:40px;margin-bottom:5px;"></div><div class="skeleton" style="height:9px;width:65px;"></div></div>
+          <div class="skeleton" style="height:10px;width:10px;border-radius:50%;"></div>
+          <div style="display:flex;gap:3px;align-items:center;flex:1;">
+            <div class="skeleton" style="height:8px;flex:1;border-radius:4px;"></div>
+            <div class="skeleton" style="height:8px;flex:1;border-radius:4px;"></div>
+            <div class="skeleton" style="height:8px;flex:1;border-radius:4px;"></div>
+            <div class="skeleton" style="height:8px;flex:1;border-radius:4px;"></div>
+          </div>
+          <div class="skeleton" style="height:24px;width:80px;border-radius:6px;"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/sidebar_shared.js') }}"></script>
+<script>
+const INITIAL_SHOW = 5;
+const POLL_MS      = 5000;
+const SLOW_POLL_MS = 30000;
+let _allBuilds     = [];
+let _showingAll    = false;
+let _avgDurationMs = 120000;
+let _activeTimers  = {};
+let _pollHandle    = null;   // fast poll (5s) — only when builds running
+let _slowHandle    = null;   // slow poll (30s) — always on
+
+// ── TOOLTIP ──
+const _tip = document.getElementById('segTip');
+function showSegTip(el, name, dur, stcls, sttext) {
+  document.getElementById('stName').textContent = name;
+  document.getElementById('stDur').textContent  = dur || '';
+  const st = document.getElementById('stStatus');
+  st.textContent = sttext;
+  st.className   = 'st-status ' + stcls;
+  _tip.classList.add('show');
+  const r    = el.getBoundingClientRect();
+  const tipW = _tip.offsetWidth || 160;
+  let left   = r.left + r.width / 2 - tipW / 2;
+  let top    = r.top - (_tip.offsetHeight || 80) - 10;
+  if (left < 8) left = 8;
+  if (left + tipW > window.innerWidth - 8) left = window.innerWidth - tipW - 8;
+  if (top < 8) top = r.bottom + 8;
+  _tip.style.left = left + 'px';
+  _tip.style.top  = top  + 'px';
+}
+function hideSegTip() { _tip.classList.remove('show'); }
+
+// ── HELPERS ──
+function fmtDur(ms) {
+  if (!ms) return '';
+  const s = Math.round(ms / 1000), m = Math.floor(s / 60);
+  return m > 0 ? m + 'm ' + String(s % 60).padStart(2, '0') + 's' : s + 's';
+}
+function fmtDate(ts) {
+  if (!ts) return '';
+  const d = new Date(ts);
+  return d.toLocaleDateString([], { month: 'short', day: 'numeric' })
+       + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+function segCls(status) {
+  if (!status || status === 'IN_PROGRESS') return 'run';
+  if (status === 'SUCCESS') return 'ok';
+  if (status === 'FAILED')  return 'fail';
+  return 'skip';
+}
+function stageStatusText(status) {
+  if (!status || status === 'IN_PROGRESS') return '⟳ In progress';
+  if (status === 'SUCCESS') return '✓ Passed';
+  if (status === 'FAILED')  return '✗ Failed';
+  return status;
+}
+function dotCls(r)    { return !r ? 'run' : r === 'SUCCESS' ? 'pass' : r === 'FAILURE' ? 'fail' : 'abrt'; }
+function resultCls(r) { return !r ? 'run' : r === 'SUCCESS' ? 'pass' : r === 'FAILURE' ? 'fail' : 'abrt'; }
+function resultLabel(r) {
+  if (!r)              return '● Running';
+  if (r === 'SUCCESS') return '✓ Success';
+  if (r === 'FAILURE') return '✗ Failure';
+  return '⊘ ' + r;
+}
+
+// ── CIRCLES ──
+function updateCircle(cId, vId, bId, pct) {
+  const c = document.getElementById(cId);
+  const v = document.getElementById(vId);
+  const b = document.getElementById(bId);
+  if (c) c.style.strokeDashoffset = 150.796 * (1 - pct / 100);
+  if (v) v.textContent = Math.round(pct);
+  if (b) {
+    if (pct >= 80)      { b.className = 'kpi-badge green'; b.textContent = '↑ Excellent'; }
+    else if (pct >= 50) { b.className = 'kpi-badge blue';  b.textContent = '~ Fair'; }
+    else                { b.className = 'kpi-badge red';   b.textContent = '↓ Poor'; }
+  }
+}
+
+// ── BUILD ROW HTML ──
+function buildRowHtml(b) {
+  const isRunning = b.result === null;
+  const stages    = b.stages || [];
+  const elapsed   = isRunning ? Math.round((Date.now() - b.timestamp) / 1000) : 0;
+  const avgSec    = Math.round(_avgDurationMs / 1000);
+  const pct       = isRunning ? Math.min(95, Math.round((elapsed / avgSec) * 100)) : 0;
+  const m         = Math.floor(elapsed / 60), sv = elapsed % 60;
+  const durText   = isRunning ? m + 'm ' + String(sv).padStart(2, '0') + 's' : '';
+
+  let segHtml;
+  if (stages.length) {
+    segHtml = stages.map(st => {
+      const cls    = segCls(st.status);
+      const tipDur = fmtDur(st.duration_ms) || '';
+      const tipSt  = stageStatusText(st.status);
+      const name   = (st.name || 'Stage').replace(/"/g, '&quot;');
+      return `<div class="seg ${cls}"
+        data-name="${name}"
+        data-dur="${tipDur}"
+        data-stcls="${cls}"
+        data-sttext="${tipSt}"
+        onmouseenter="showSegTip(this,this.dataset.name,this.dataset.dur,this.dataset.stcls,this.dataset.sttext)"
+        onmouseleave="hideSegTip()"
+        onclick="event.stopPropagation();window.open('/jenkins/console/${b.number}','_blank')"
+      ></div>`;
+    }).join('');
+  } else {
+    segHtml = `<span class="no-stage-txt">${isRunning ? '⟳ waiting for stages…' : 'No stage data'}</span>`;
+  }
+
+  const runBar = isRunning
+    ? `<div class="run-bar">
+         <div class="run-bar-fill" id="rb-${b.number}" style="width:${pct}%"></div>
+       </div>`
+    : '';
+
+  // result cell — for running builds show elapsed time below the badge
+  const resultCell = isRunning
+    ? `<div>
+         <span class="br-result run">${resultLabel(b.result)}</span>
+         <div style="font-size:9.5px;font-family:'JetBrains Mono',monospace;color:var(--text2);margin-top:4px;" id="brdur-${b.number}">${durText}</div>
+         <div class="br-console">↗ console</div>
+       </div>`
+    : `<div>
+         <span class="br-result ${resultCls(b.result)}">${resultLabel(b.result)}</span>
+         <div style="font-size:9.5px;font-family:'JetBrains Mono',monospace;color:var(--text2);margin-top:4px;"></div>
+         <div class="br-console">↗ console</div>
+       </div>`;
+
+  return `
+    <div class="build-row ${isRunning ? 'is-running' : ''}"
+         id="brow-${b.number}"
+         onclick="window.open('/jenkins/console/${b.number}','_blank')">
+      <div>
+        <div class="br-num">#${b.number}</div>
+        <div class="br-date">${fmtDate(b.timestamp)}</div>
+      </div>
+      <div class="br-dot ${dotCls(b.result)}"></div>
+      <div class="stage-strip">${segHtml}</div>
+      ${resultCell}
+      ${runBar}
+    </div>`;
+}
+
+// ── RENDER ──
+function renderTimeline() {
+  const container = document.getElementById('buildTimeline');
+  const btn       = document.getElementById('showMoreBtn');
+  const badge     = document.getElementById('runningBadge');
+  if (!container) return;
+
+  const running  = _allBuilds.filter(b => b.result === null);
+  const finished = _allBuilds.filter(b => b.result !== null);
+
+  badge.style.display = running.length ? 'inline-flex' : 'none';
+  if (running.length) badge.textContent = '● ' + running.length + ' running';
+
+  const finishedToShow = _showingAll ? finished : finished.slice(0, INITIAL_SHOW);
+  const toRender       = [...running, ...finishedToShow];
+
+  container.innerHTML = toRender.length
+    ? toRender.map(buildRowHtml).join('')
+    : '<div class="tl-empty">No builds found.</div>';
+
+  if (finished.length > INITIAL_SHOW) {
+    btn.style.display = 'block';
+    btn.textContent   = _showingAll
+      ? 'Show less ↑'
+      : 'Show more ↓  (' + (finished.length - INITIAL_SHOW) + ' more)';
+  } else {
+    btn.style.display = 'none';
+  }
+
+  startRunningTimers(running);
+}
+
+// ── LIVE TIMERS ──
+function startRunningTimers(running) {
+  const runNums = new Set(running.map(b => b.number));
+  Object.keys(_activeTimers).forEach(n => {
+    if (!runNums.has(parseInt(n))) { clearInterval(_activeTimers[n]); delete _activeTimers[n]; }
+  });
+  running.forEach(b => {
+    if (_activeTimers[b.number]) return;
+    _activeTimers[b.number] = setInterval(() => {
+      const elSec = Math.round((Date.now() - b.timestamp) / 1000);
+      const pct   = Math.min(95, Math.round((elSec / Math.round(_avgDurationMs / 1000)) * 100));
+      const m     = Math.floor(elSec / 60), s = elSec % 60;
+      const durEl = document.getElementById('brdur-' + b.number);
+      const rbEl  = document.getElementById('rb-'   + b.number);
+      if (durEl) durEl.textContent = m + 'm ' + String(s).padStart(2, '0') + 's';
+      if (rbEl)  rbEl.style.width  = pct + '%';
+    }, 1000);
+  });
+}
+
+function toggleShowMore() { _showingAll = !_showingAll; renderTimeline(); }
+
+// ── CONFIRM MODAL ──
+function showConfirm(title, body, onYes) {
+  const old = document.getElementById('_confirmModal');
+  if (old) old.remove();
+  const overlay = document.createElement('div');
+  overlay.id = '_confirmModal';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);';
+  overlay.innerHTML = `
+    <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:18px;padding:28px 28px 22px;width:340px;box-shadow:0 24px 60px rgba(0,0,0,.7);">
+      <div style="font-size:16px;font-weight:800;margin-bottom:8px;">${title}</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.5;margin-bottom:22px;">${body}</div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button id="_cNo"  style="padding:8px 18px;border-radius:9px;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Cancel</button>
+        <button id="_cYes" style="padding:8px 18px;border-radius:9px;border:none;background:var(--accent);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">Confirm</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  document.getElementById('_cYes').onclick = () => { overlay.remove(); onYes(); };
+  document.getElementById('_cNo').onclick  = () => overlay.remove();
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+}
+
+// ── TRIGGER BUILD ──
+function triggerBuild() {
+  showConfirm(
+    '▶ Start Build',
+    'Trigger a new build for <strong>django-pipeline</strong>?',
+    async () => {
+      try {
+        const res  = await fetch('/jenkins/api/build', { method: 'POST' });
+        const data = await res.json();
+        if (data.queued) {
+          showToast('✅ Build queued — watching for updates');
+          // immediately start fast polling
+          if (!_pollHandle) _pollHandle = setInterval(loadPipelineKPIs, POLL_MS);
+          setTimeout(loadPipelineKPIs, 2000);
+        } else {
+          showToast('❌ ' + (data.error || 'Failed to trigger'), 'abort-toast');
+        }
+      } catch(e) {
+        showToast('❌ Network error', 'abort-toast');
+      }
+    }
+  );
+}
+
+// ── MAIN LOAD ──
+async function loadPipelineKPIs() {
+  try {
+    const url  = document.querySelector('main').dataset.pipelineKpisUrl;
+    const data = await (await fetch(url)).json();
+
+    if (!data.connected || !data.builds || !data.builds.length) {
+      document.getElementById('buildTimeline').innerHTML =
+        '<div class="tl-empty">No build data — check Jenkins connection.</div>';
+      return;
+    }
+
+    const durs = data.builds.filter(b => b.result && b.duration > 0).map(b => b.duration);
+    if (durs.length) _avgDurationMs = Math.round(durs.reduce((a, b) => a + b, 0) / durs.length);
+
+    const finished = data.builds.filter(b => b.result !== null);
+    const success  = finished.filter(b => b.result === 'SUCCESS').length;
+    const rate     = finished.length > 0 ? Math.round(success / finished.length * 100) : 0;
+
+    if (finished.length > 0) {
+      const tag = document.getElementById('latestBuildTag');
+      if (tag) tag.textContent = '#' + finished[0].number;
+    }
+
+    updateCircle('healthCircle', 'health-val', 'health-badge', data.health_score || 0);
+    updateCircle('rateCircle',   'rate-val',   'rate-badge',   rate);
+
+    _allBuilds = data.builds;
+    renderTimeline();
+
+    // polling logic: fast when running, otherwise rely on slow poll
+    const hasRunning = data.builds.some(b => b.result === null);
+    if (hasRunning && !_pollHandle) {
+      _pollHandle = setInterval(loadPipelineKPIs, POLL_MS);
+    } else if (!hasRunning && _pollHandle) {
+      clearInterval(_pollHandle);
+      _pollHandle = null;
+    }
+
+  } catch(e) { console.error('Pipeline KPI error:', e); }
+}
+
+// ── BOOT ──
+checkStatus();
+loadPipelineKPIs();
+
+// Always-on slow poll — catches builds triggered from elsewhere (Jenkins UI, other pages)
+_slowHandle = setInterval(() => {
+  if (!_pollHandle) loadPipelineKPIs();
+}, SLOW_POLL_MS);
+</script>
+{% endblock %}

@@ -1,7 +1,7 @@
 from functools import wraps
 from flask import session, redirect, url_for, jsonify, render_template
 from jenkins_bp import jenkins_bp
-from .fetcher import check_connection, get_kpis, trigger_build, abort_build, get_console_log
+from .fetcher import check_connection, get_kpis, get_running_stages, trigger_build, abort_build, get_console_log, get_pipeline_kpis
 
 
 def role_required(*roles):
@@ -74,8 +74,22 @@ def console(build_number):
 
 #pipeline kpis 
 
-
 @jenkins_bp.route('/pipeline_kpis')
 @role_required('admin', 'dev', 'qa')
 def pipeline_kpis():
-    return render_template('admin/pipeline_kpis.html')
+    return render_template('admin/pipeline_kpis.html',
+        username=session.get('username'),
+        role=session.get('role'),
+        pending_count=0
+    )
+
+@jenkins_bp.route('/api/pipeline_kpis')
+@role_required('admin', 'dev', 'qa')
+def pipeline_kpis_api():
+    return jsonify(get_pipeline_kpis())
+
+
+@jenkins_bp.route('/api/running_stages')
+@role_required('admin', 'dev', 'qa')
+def running_stages():
+    return jsonify(get_running_stages())

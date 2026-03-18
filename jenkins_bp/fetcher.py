@@ -184,7 +184,122 @@ def get_kpis():
         'avg_duration_ms': avg_duration_ms,
     }
 
+def get_stages(build_number):
+    """Get stage breakdown for a specific build (requires Pipeline Stage View plugin)."""
+    try:
+        resp = requests.get(
+            f'{_get_base()}/{build_number}/wfapi/describe',
+            auth=_get_auth(),
+            timeout=10
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        return [
+            {
+                'name':       s.get('name'),
+                'status':     s.get('status'),
+                'duration_ms': s.get('durationMillis', 0),
+                'start_time': s.get('startTimeMillis', 0),
+            }
+            for s in data.get('stages', [])
+        ]
+    except Exception as e:
+        logger.error(f'[Jenkins] get_stages error: {e}')
+        return []
 
+
+def get_test_report(build_number):
+    """Get test results for a specific build."""
+    try:
+        resp = requests.get(
+            f'{_get_base()}/{build_number}/testReport/api/json'
+            '?tree=total,passCount,failCount,skipCount,suites[cases[name,status,duration]]',
+            auth=_get_auth(),
+            timeout=10
+        )
+        if resp.status_code == 404:
+            return None  # no tests for this build
+        resp.raise_for_status()
+        data = resp.json()
+        return {
+            'total':      data.get('total', 0),
+            'passed':     data.get('passCount', 0),
+            'failed':     data.get('failCount', 0),
+            'skipped':    data.get('skipCount', 0),
+            'suites':     data.get('suites', []),
+        }
+    except Exception as e:
+        logger.error(f'[Jenkins] get_test_report error: {e}')
+        return None
+
+
+def get_coverage(build_number):
+    """Get code coverage for a specific build (requires Coverage plugin)."""
+    try:
+        resp = requests.get(
+            f'{_get_base()}/{build_number}/coverage/api/json'
+            '?tree=results[elements[name,ratio]]',
+            auth=_get_auth(),
+            timeout=10
+        )
+        if resp.status_code == 404:
+            return None
+        resp.raise_for_status()
+        data = resp.json()
+        elements = data.get('results', {}).get('elements', [])
+        out = {}
+        for el in elements:
+            out[el['name'].lower()] = round(el.get('ratio', 0) * 100, 1)
+        return out  # e.g. {'line': 87.3, 'branch': 72.1, 'method': 91.0}
+    except Exception as e:
+        logger.error(f'[Jenkins] get_coverage error: {e}')
+        return None
+
+def get_pipeline_kpis():
+    all_builds = get_all_builds()
+    if all_builds is None:
+        return {'connected': False}
+
+    # ← iterate ALL builds, not just finished
+    builds_data = []
+    for b in all_builds:
+        num      = b.get('number')
+        stages   = get_stages(num)        # called for running too now
+        tests    = get_test_report(num)
+        coverage = get_coverage(num)
+        builds_data.append({
+            'number':    num,
+            'result':    b.get('result'),
+            'duration':  b.get('duration', 0),
+            'timestamp': b.get('timestamp', 0),
+            'stages':    stages,
+            'tests':     tests,
+            'coverage':  coverage,
+        })
+
+    finished = [b for b in builds_data if b['result'] is not None]
+    # ... rest of your kpis calculation
+    return {
+        'connected':    True,
+        'builds':       builds_data,
+        'health_score': get_health_score(),
+    }
+
+def get_running_stages():
+    """Only fetch stages for currently running builds — fast and lightweight."""
+    running = get_running_builds()
+    if not running:
+        return []
+    result = []
+    for b in running:
+        num    = b.get('number')
+        stages = get_stages(num)
+        result.append({
+            'number':    num,
+            'timestamp': b.get('timestamp', 0),
+            'stages':    stages,
+        })
+    return result
 if __name__ == '__main__':
     import sys
     sys.path.insert(0, '/home/tasnim/Monitoring-dashboard-for-jenkins-pipeline')

@@ -474,7 +474,33 @@ function clearDashboard() {
     if (w) w.innerHTML = '<div class="no-builds" style="width:100%;text-align:center;">No build data available</div>';
     const s = document.getElementById('buildSummaryRow'); if (s) s.innerHTML = '';
 }
+// Fast stage updater — only updates squares on running rows
+async function pollRunningStages() {
+  try {
+    const data = await (await fetch('/jenkins/api/running_stages')).json();
+    data.forEach(b => {
+      const strip = document.querySelector('#brow-' + b.number + ' .stage-strip');
+      if (!strip || !b.stages.length) return;
+      strip.innerHTML = b.stages.map(st => {
+        const cls  = segCls(st.status);
+        const name = (st.name || 'Stage').replace(/"/g, '&quot;');
+        const tipDur = fmtDur(st.duration_ms) || '';
+        const tipSt  = stageStatusText(st.status);
+        return `<div class="seg ${cls}"
+          data-name="${name}" data-dur="${tipDur}"
+          data-stcls="${cls}" data-sttext="${tipSt}"
+          onmouseenter="showSegTip(this,this.dataset.name,this.dataset.dur,this.dataset.stcls,this.dataset.sttext)"
+          onmouseleave="hideSegTip()"
+          onclick="event.stopPropagation();window.open('/jenkins/console/${b.number}','_blank')"
+        ></div>`;
+      }).join('');
+    });
+  } catch(e) {}
+}
 
+// Start fast stage polling only when builds are running
+// Called from inside startRunningTimers()
+setInterval(pollRunningStages, 2000);
 // ─────────────────────────────────────────────
 // TOAST
 // ─────────────────────────────────────────────
