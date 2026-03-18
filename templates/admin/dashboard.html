@@ -166,6 +166,80 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .build-line.aborted .bl-progress-fill{background:var(--orange);box-shadow:none;}
 .build-line.aborted .bl-progress-fill::after{display:none;}
 .no-builds{text-align:center;padding:20px;color:var(--text2);font-size:12px;}
+/* ── PASTE THIS into dashboard.html <style> block, after .no-builds ── */
+
+/* Console button next to abort in active builds */
+.bl-console-btn {
+    width: 22px; height: 22px;
+    border-radius: 6px;
+    background: rgba(124,111,255,.15);
+    border: 1px solid rgba(124,111,255,.3);
+    color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; text-decoration: none;
+    transition: background .15s, transform .15s;
+}
+.bl-console-btn:hover { background: rgba(124,111,255,.3); transform: scale(1.1); }
+.bl-console-btn svg {
+    width: 11px; height: 11px;
+    stroke: currentColor; fill: none;
+    stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round;
+}
+
+/* Rich bar chart tooltip with console link */
+.bar-tooltip-rich {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%; transform: translateX(-50%);
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    padding: 10px 12px;
+    min-width: 130px;
+    z-index: 100;
+    box-shadow: var(--shadow);
+    pointer-events: none;
+}
+.bar-col:hover .bar-tooltip-rich {
+    display: block;
+    pointer-events: all;  /* allow clicking the console link */
+}
+.btr-top {
+    display: flex; align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+.btr-num {
+    font-size: 12px; font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text);
+}
+.btr-result {
+    font-size: 10px; font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+}
+.btr-dur {
+    font-size: 11px; color: var(--text2);
+    font-family: 'JetBrains Mono', monospace;
+    margin-bottom: 8px;
+}
+.btr-console {
+    display: flex; align-items: center; gap: 5px;
+    padding: 5px 9px; border-radius: 7px;
+    background: var(--accent); color: #fff;
+    font-size: 11px; font-weight: 700;
+    text-decoration: none;
+    transition: filter .15s;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    width: 100%; justify-content: center;
+}
+.btr-console:hover { filter: brightness(1.1); }
+.btr-console svg {
+    width: 11px; height: 11px;
+    stroke: currentColor; fill: none;
+    stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round;
+}
 
 /* ── CHARTS ── */
 .charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
@@ -184,6 +258,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .leg-dot{width:7px;height:7px;border-radius:50%;}
 .axis-label{font-size:8.5px;fill:var(--text2);font-family:'JetBrains Mono',monospace;}
 .grid-line{stroke:currentColor;stroke-opacity:.06;stroke-width:.8;}
+.bar-tooltip-simple{display:none;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--bg);border:1px solid var(--border2);border-radius:8px;padding:7px 10px;font-size:11px;color:var(--text);white-space:nowrap;z-index:100;box-shadow:var(--shadow);pointer-events:none;font-family:'JetBrains Mono',monospace;}
+.bar-col:hover .bar-tooltip-simple{display:block;}
 /* bar chart */
 .bars-wrap{display:flex;align-items:flex-end;gap:6px;height:150px;position:relative;}
 .bars-wrap::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:var(--border);}
@@ -283,10 +359,17 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
       <span class="nav-label">Alerts</span>
       <span class="nav-badge">7</span>
     </div>
-    <div class="nav-item" onclick="setActive(this)">
-      <span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
-      <span class="nav-label">Pipeline KPIs</span>
-    </div>
+<div class="nav-item" onclick="window.location.href='{{ url_for('jenkins.pipeline_kpis') }}'">
+  <span class="nav-icon">
+    <svg viewBox="0 0 24 24">
+      <rect x="3" y="3" width="7" height="7" rx="1"/>
+      <rect x="14" y="3" width="7" height="7" rx="1"/>
+      <rect x="3" y="14" width="7" height="7" rx="1"/>
+      <rect x="14" y="14" width="7" height="7" rx="1"/>
+    </svg>
+  </span>
+  <span class="nav-label">Pipeline KPIs</span>
+</div>
     <div class="nav-item" onclick="setActive(this)">
       <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="12" y2="17"/></svg></span>
       <span class="nav-label">Pipeline Details</span>
@@ -485,6 +568,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
         <div class="chart-legend">
           <div class="leg-item"><div class="leg-dot" style="background:var(--green)"></div>Successes</div>
           <div class="leg-item"><div class="leg-dot" style="background:var(--red);opacity:.6"></div>Failures</div>
+          <div class="leg-item"><div class="leg-dot" style="background:var(--yellow);opacity:.6"></div>Aborted</div>
+
         </div>
       </div>
 

@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>
+  (function(){
+    const saved = localStorage.getItem('jm-t') || 'dark';
+    document.documentElement.setAttribute('data-theme', saved);
+  })();
+</script>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Build #{{ build_number }} — Console</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root[data-theme="dark"] {
+  --bg:#0c0c14; --bg2:#12121e; --bg3:#191928; --bg4:#1f1f32;
+  --border:rgba(255,255,255,0.06); --border2:rgba(255,255,255,0.11);
+  --text:#e8e8f8; --text2:#aaaab7;
+  --accent:#7c6fff; --aglow:rgba(124,111,255,0.35);
+  --green:#00dba0; --red:#ff4560; --yellow:#f5c542; --orange:#ff8c42; --blue:#3ab8f8;
+}
+:root[data-theme="light"] {
+  --bg:#f0f0f8; --bg2:#ffffff; --bg3:#e8e8f4; --bg4:#ddddf0;
+  --border:rgba(0,0,0,0.07); --border2:rgba(0,0,0,0.13);
+  --text:#0e0e20; --text2:#555568;
+  --accent:#6558f0; --aglow:rgba(101,88,240,0.2);
+  --green:#00b87a; --red:#e02040; --yellow:#d4920a; --orange:#c96a00; --blue:#0284c7;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;font-size:14px;background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;}
+
+.topbar{
+  display:flex;align-items:center;gap:14px;
+  padding:14px 24px;
+  background:var(--bg2);
+  border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:10;
+}
+.back-btn{
+  display:flex;align-items:center;gap:6px;
+  padding:7px 13px;border-radius:8px;
+  background:var(--bg3);border:1px solid var(--border2);
+  color:var(--text2);font-size:12px;font-weight:600;
+  cursor:pointer;text-decoration:none;
+  transition:background .15s,color .15s;
+  flex-shrink:0;
+}
+.back-btn:hover{background:var(--bg4);color:var(--text);}
+.back-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.tb-center{flex:1;}
+.tb-title{font-size:16px;font-weight:800;letter-spacing:-.02em;}
+.tb-sub{font-size:11px;color:var(--text2);margin-top:2px;}
+.tb-right{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.tb-badge{padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace;}
+.badge-running{background:rgba(58,184,248,.12);color:var(--blue);border:1px solid rgba(58,184,248,.2);}
+.badge-success{background:rgba(0,219,160,.12);color:var(--green);border:1px solid rgba(0,219,160,.2);}
+.badge-failure{background:rgba(255,69,96,.12);color:var(--red);border:1px solid rgba(255,69,96,.2);}
+.badge-aborted{background:rgba(255,140,66,.12);color:var(--orange);border:1px solid rgba(255,140,66,.2);}
+
+.live-indicator{display:flex;align-items:center;gap:6px;}
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(--blue);box-shadow:0 0 0 3px rgba(58,184,248,.2);animation:livepulse 1.4s ease-in-out infinite;flex-shrink:0;}
+@keyframes livepulse{0%,100%{box-shadow:0 0 0 3px rgba(58,184,248,.18);}50%{box-shadow:0 0 0 7px rgba(58,184,248,.04);}}
+.live-label{font-size:11px;font-weight:700;color:var(--blue);}
+
+.theme-btn{
+  width:32px;height:32px;border-radius:8px;
+  border:1px solid var(--border2);
+  background:var(--bg3);color:var(--text);
+  font-size:15px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .15s,transform .15s;
+  flex-shrink:0;
+}
+.theme-btn:hover{background:var(--bg4);transform:scale(1.08);}
+
+.scroll-btn{
+  display:flex;align-items:center;gap:6px;
+  padding:7px 13px;border-radius:8px;
+  background:var(--accent);color:#fff;
+  font-size:12px;font-weight:700;
+  cursor:pointer;border:none;
+  transition:filter .15s;font-family:inherit;
+  flex-shrink:0;
+}
+.scroll-btn:hover{filter:brightness(1.1);}
+.scroll-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;}
+
+.log-wrap{padding:24px;min-height:calc(100vh - 60px);}
+.log-box{background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+.log-header{display:flex;align-items:center;gap:10px;padding:12px 18px;background:var(--bg3);border-bottom:1px solid var(--border);}
+.dot{width:10px;height:10px;border-radius:50%;}
+.dot.r{background:#ff5f57;}.dot.y{background:#ffbd2e;}.dot.g{background:#28c840;}
+.log-header-title{font-size:11px;font-weight:600;color:var(--text2);font-family:'JetBrains Mono',monospace;margin-left:6px;flex:1;}
+.log-lines{font-size:11px;color:var(--text2);font-family:'JetBrains Mono',monospace;}
+.log-body{padding:20px 24px;overflow-x:auto;}
+.log-table{width:100%;border-collapse:collapse;font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.7;}
+.log-table td{vertical-align:top;white-space:pre-wrap;word-break:break-all;}
+.ln{color:rgba(255,255,255,0.18);text-align:right;user-select:none;min-width:42px;font-size:11px;border-right:1px solid var(--border);padding-right:14px;}
+.lc{color:#c9d1d9;padding-left:16px;}
+.lc.l-success{color:var(--green);}
+.lc.l-error  {color:var(--red);}
+.lc.l-warn   {color:var(--yellow);}
+.lc.l-stage  {color:var(--blue);font-weight:600;}
+.lc.l-info   {color:var(--text2);}
+.lc.l-finish {color:var(--green);font-weight:700;}
+#logBottom{height:1px;}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ TOPBAR ═══════════════ -->
+<div class="topbar">
+
+  <!-- LEFT: back button -->
+  <a class="back-btn" href="javascript:window.close()">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    Close
+  </a>
+
+  <!-- CENTER: title -->
+  <div class="tb-center">
+    <div class="tb-title">Build #{{ build_number }} — Console Output</div>
+    <div class="tb-sub">{{ username }} · {{ role }}</div>
+  </div>
+
+  <!-- RIGHT: live indicator + badge + theme + scroll -->
+  <div class="tb-right">
+    <div class="live-indicator" id="liveIndicator">
+      <div class="live-dot"></div>
+      <span class="live-label">LIVE</span>
+    </div>
+    <span class="tb-badge badge-running" id="resultBadge">● Fetching...</span>
+    <button class="theme-btn" id="themeBtn" onclick="toggleTheme()"></button>
+    <button class="scroll-btn" onclick="scrollToBottom()">
+      <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      Bottom
+    </button>
+  </div>
+
+</div>
+
+<!-- ═══════════════ LOG ═══════════════ -->
+<div class="log-wrap">
+  <div class="log-box">
+    <div class="log-header">
+      <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+      <div class="log-header-title">build-#{{ build_number }}.log</div>
+      <div class="log-lines" id="lineCount">0 lines</div>
+    </div>
+    <div class="log-body">
+      <table class="log-table"><tbody id="logBody"></tbody></table>
+    </div>
+  </div>
+  <div id="logBottom"></div>
+</div>
+
+<script>
+// ── Theme
+function toggleTheme(){
+  const r = document.documentElement;
+  const isDark = r.getAttribute('data-theme') === 'dark';
+  const next = isDark ? 'light' : 'dark';
+  r.setAttribute('data-theme', next);
+  document.getElementById('themeBtn').textContent = isDark ? '🌙' : '☀️';
+  localStorage.setItem('jm-t', next);
+}
+(function(){
+  const saved = localStorage.getItem('jm-t') || 'dark';
+  document.getElementById('themeBtn').textContent = saved === 'dark' ? '☀️' : '🌙';
+})();
+
+// ── Build vars
+const BUILD_NUMBER   = {{ build_number }};
+let _isRunning       = true;
+let _autoScroll      = true;
+let _pollHandle      = null;
+let _lastLineCount   = 0;
+
+// ── LINE CLASSIFIER
+function cls(line) {
+  const l = line.toLowerCase();
+  if (/finished:\s*success/.test(l))            return 'l-finish';
+  if (/finished:\s*(failure|aborted)/.test(l))  return 'l-error';
+  if (/error|exception|failed|failure/.test(l)) return 'l-error';
+  if (/warning|warn/.test(l))                   return 'l-warn';
+  if (/\[pipeline\]|\[stage\]/.test(l))         return 'l-stage';
+  if (/started by|building in|checking out/.test(l)) return 'l-info';
+  if (/success/.test(l))                        return 'l-success';
+  return '';
+}
+
+// ── RENDER / APPEND LOG LINES
+function renderLines(text) {
+  const lines = text.split('\n');
+  const tbody = document.getElementById('logBody');
+  const frag  = document.createDocumentFragment();
+  const start = _lastLineCount;
+
+  for (let i = start; i < lines.length; i++) {
+    const tr  = document.createElement('tr');
+    const tdN = document.createElement('td');
+    const tdC = document.createElement('td');
+    tdN.className   = 'ln';
+    tdN.textContent = i + 1;
+    tdC.className   = 'lc ' + cls(lines[i]);
+    tdC.textContent = lines[i] || ' ';
+    tr.appendChild(tdN);
+    tr.appendChild(tdC);
+    frag.appendChild(tr);
+  }
+
+  tbody.appendChild(frag);
+  _lastLineCount = lines.length;
+
+  const lc = document.getElementById('lineCount');
+  if (lc) lc.textContent = lines.length + ' lines';
+
+  detectFinish(text);
+  if (_autoScroll) scrollToBottom();
+}
+
+// ── DETECT FINISH
+function detectFinish(text) {
+  if (/Finished:\s*(SUCCESS|FAILURE|ABORTED)/i.test(text)) {
+    _isRunning = false;
+    stopPolling();
+    updateBadge(text);
+    const li = document.getElementById('liveIndicator');
+    if (li) li.style.display = 'none';
+  }
+}
+
+// ── UPDATE BADGE
+function updateBadge(text) {
+  const badge = document.getElementById('resultBadge');
+  if (!badge) return;
+  if      (/Finished:\s*SUCCESS/i.test(text))  { badge.textContent = '✓ SUCCESS'; badge.className = 'tb-badge badge-success'; }
+  else if (/Finished:\s*FAILURE/i.test(text))  { badge.textContent = '✗ FAILURE'; badge.className = 'tb-badge badge-failure'; }
+  else if (/Finished:\s*ABORTED/i.test(text))  { badge.textContent = '⊘ ABORTED'; badge.className = 'tb-badge badge-aborted'; }
+  else                                          { badge.textContent = '● RUNNING'; badge.className = 'tb-badge badge-running'; }
+}
+
+// ── FETCH LOG
+async function fetchLog() {
+  try {
+    const res  = await fetch('/jenkins/api/log/' + BUILD_NUMBER);
+    const data = await res.json();
+    renderLines(data.log || '');
+  } catch(e) {
+    console.error('Log fetch error:', e);
+  }
+}
+
+// ── POLLING
+function startPolling() {
+  fetchLog();
+  _pollHandle = setInterval(fetchLog, 3000);
+}
+function stopPolling() {
+  if (_pollHandle) { clearInterval(_pollHandle); _pollHandle = null; }
+}
+
+// ── SCROLL
+function scrollToBottom() {
+  document.getElementById('logBottom').scrollIntoView({ behavior: 'smooth' });
+}
+window.addEventListener('scroll', () => {
+  const dist = document.body.scrollHeight - window.scrollY - window.innerHeight;
+  _autoScroll = dist < 120;
+});
+
+// ── BOOT
+startPolling();
+</script>
+</body>
+</html>
