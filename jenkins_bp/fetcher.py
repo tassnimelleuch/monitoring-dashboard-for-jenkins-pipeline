@@ -255,22 +255,45 @@ def get_coverage(build_number):
         logger.error(f'[Jenkins] get_coverage error: {e}')
         return None
 
+def get_test_coverage(jenkins_url, job_name, build_number, auth):
+    """Fetch coverage from JaCoCo or Cobertura plugin on last successful build."""
+    # Try JaCoCo first
+    for endpoint in [
+        f"{jenkins_url}/job/{job_name}/{build_number}/jacoco/api/json",
+        f"{jenkins_url}/job/{job_name}/{build_number}/cobertura/api/json?depth=2",
+    ]:
+        try:
+            resp = requests.get(endpoint, auth=auth, timeout=5)
+            if resp.status_code == 200:
+                data = resp.json()
+                # JaCoCo returns lineCoverage as a float 0.0–1.0
+                if 'lineCoverage' in data:
+                    return round(data['lineCoverage'] * 100, 1)
+                # Cobertura returns elements with ratio
+                if 'results' in data:
+                    for el in data['results'].get('elements', []):
+                        if el.get('name') == 'Lines':
+                            return round(el['ratio'] * 100, 1)
+        except Exception:
+            continue
+    return None
+
 def get_pipeline_kpis():
     all_builds = get_all_builds()
     if all_builds is None:
         return {'connected': False}
 
-    # ← iterate ALL builds, not just finished
+    # Build comprehensive data (limit to last 50 for performance)
     builds_data = []
-    for b in all_builds:
-        num      = b.get('number')
-        stages   = get_stages(num)        # called for running too now
-        tests    = get_test_report(num)
-        coverage = get_coverage(num)
+    for b in all_builds[:50]:
+        num = b.get('number')
+        stages = get_stages(num) if num else []
+        tests = get_test_report(num) if num else None
+        coverage = get_coverage(num) if num else None
         builds_data.append({
             'number':    num,
             'result':    b.get('result'),
-            'duration':  b.get('duration', 0),
+            'duration':  b.get('duration', 0) // 1000 if b.get('duration') else 0,  # convert to seconds
             'timestamp': b.get('timestamp', 0),
             'stages':    stages,
             'tests':     tests,
@@ -278,11 +301,43 @@ def get_pipeline_kpis():
         })
 
     finished = [b for b in builds_data if b['result'] is not None]
-    # ... rest of your kpis calculation
+    
+    # Calculate average duration (in seconds)
+    durations = [b['duration'] for b in finished if b['duration'] > 0]
+    avg_duration = round(sum(durations) / len(durations)) if durations else 0
+    
+    # Calculate failure rate by stage
+    stage_failures = {}
+    stage_totals = {}
+    for b in finished:
+        for stage in b.get('stages', []):
+            stage_name = stage.get('name', 'Unknown')
+            stage_totals[stage_name] = stage_totals.get(stage_name, 0) + 1
+            if stage.get('status') == 'FAILED':
+                stage_failures[stage_name] = stage_failures.get(stage_name, 0) + 1
+    
+    failure_rate_by_stage = {}
+    for stage_name, count in stage_totals.items():
+        failures = stage_failures.get(stage_name, 0)
+        failure_rate_by_stage[stage_name] = round((failures / count * 100), 1) if count > 0 else 0
+    
+    # Calculate average test coverage
+    coverages = []
+    for b in finished:
+        if b.get('coverage') and isinstance(b['coverage'], dict):
+            if 'line' in b['coverage']:
+                coverages.append(b['coverage']['line'])
+    
+    avg_coverage = round(sum(coverages) / len(coverages), 1) if coverages else 0
+    
     return {
-        'connected':    True,
-        'builds':       builds_data,
-        'health_score': get_health_score(),
+        'connected':              True,
+        'builds':                 builds_data,
+        'health_score':           get_health_score(),
+        'avg_duration_seconds':   avg_duration,
+        'failure_rate_by_stage':  failure_rate_by_stage,
+        'avg_test_coverage':      avg_coverage,
+        'build_durations':        [(b['number'], b['duration']) for b in finished[-20:]],  # Last 20 for chart
     }
 
 def get_running_stages():

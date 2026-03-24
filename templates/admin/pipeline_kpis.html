@@ -39,6 +39,19 @@
 }
 .show-more-btn:hover{background:var(--bg3);color:var(--text);border-color:var(--accent);}
 
+/* ── CHART STYLING ── */
+.charts-grid { animation: slideUp .5s ease both; }
+@keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+.chart-card {
+  animation: fadeUp .5s ease both;
+}
+.chart-card:nth-child(1) { animation-delay: .32s; }
+.chart-card:nth-child(2) { animation-delay: .35s; }
+.chart-card:nth-child(3) { animation-delay: .38s; }
+.chart-card:nth-child(4) { animation-delay: .41s; }
+
 /* ── 4-column grid (no duration) ── */
 .tl-col-header{
   display:grid;
@@ -286,6 +299,31 @@
       </div>
     </div>
 
+    <!-- ── CHARTS GRID ── -->
+    <div class="charts-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px;animation:fadeUp .5s ease both;animation-delay:.3s;">
+      
+      <!-- Chart 1: Average Build Duration -->
+      <div class="chart-card" style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px 20px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;">
+        <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;">Avg Build Duration</div>
+        <div style="font-size:36px;font-weight:800;font-family:'JetBrains Mono',monospace;color:var(--accent);margin-bottom:4px;" id="avgDurationValue">—</div>
+        <div style="font-size:12px;color:var(--text2);">seconds (last 20 builds)</div>
+      </div>
+
+      <!-- Chart 2: Test Coverage -->
+      <div class="chart-card" style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px 20px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;">
+        <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;">Test Coverage</div>
+        <div style="font-size:36px;font-weight:800;font-family:'JetBrains Mono',monospace;color:var(--blue);margin-bottom:4px;" id="coverageValue">—</div>
+        <div style="font-size:12px;color:var(--text2);">% line coverage average</div>
+      </div>
+
+      <!-- Chart 3: Failure Rate by Stage (Full Width) -->
+      <div class="chart-card" style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px 20px;grid-column:1/-1;">
+        <div style="font-size:12px;font-weight:700;margin-bottom:14px;">Failure Rate by Stage</div>
+        <div id="stageFailureChart" style="display:flex;flex-direction:column;gap:10px;">
+          <div style="height:8px;background:var(--bg3);border-radius:4px;flex:1;"></div>
+        </div>
+      </div>
+
   </div>
 </main>
 
@@ -294,6 +332,7 @@
 
 {% block extra_scripts %}
 <script src="{{ url_for('static', filename='js/sidebar_shared.js') }}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
 const INITIAL_SHOW = 5;
 const POLL_MS      = 5000;
@@ -588,6 +627,179 @@ function triggerBuild() {
   );
 }
 
+// ── RENDER CHARTS ──
+function renderCharts(data) {
+  // 1. Average Duration
+  if (data.avg_duration_seconds !== undefined) {
+    const avgDur = data.avg_duration_seconds || 0;
+    const mins = Math.floor(avgDur / 60);
+    const secs = avgDur % 60;
+    const displayText = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+    const el = document.getElementById('avgDurationValue');
+    if (el) el.textContent = displayText;
+  }
+
+  // 2. Test Coverage
+  if (data.avg_test_coverage !== undefined) {
+    const coverage = data.avg_test_coverage || 0;
+    const el = document.getElementById('coverageValue');
+    if (el) el.textContent = coverage.toFixed(1);
+  }
+
+  // 3. Failure Rate by Stage
+  if (data.failure_rate_by_stage && Object.keys(data.failure_rate_by_stage).length > 0) {
+    renderStageFailureChart(data.failure_rate_by_stage);
+  }
+
+  // 4. Build Duration Timeline
+  if (data.build_durations && data.build_durations.length > 0) {
+    renderDurationChart(data.build_durations);
+  }
+}
+function renderStageFailureChart(failureRateByStage) {
+  const container = document.getElementById('stageFailureChart');
+  if (!container) return;
+
+  const entries = Object.entries(failureRateByStage).sort((a, b) => b[1] - a[1]).slice(0, 8);
+  if (!entries.length) {
+    container.innerHTML = '<div style="text-align:center;color:var(--text2);padding:20px;font-size:12px;">No stage data available</div>';
+    return;
+  }
+
+  const isDark = matchMedia('(prefers-color-scheme: dark)').matches;
+  const gridColor  = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+  const textColor  = isDark ? '#9c9a92' : '#73726c';
+  const labelColor = isDark ? '#c2c0b6' : '#3d3d3a';
+
+  const labels = entries.map(e => e[0]);
+  const values = entries.map(e => e[1]);
+
+  const bgColors     = values.map(v => v > 50 ? 'rgba(226,75,74,0.75)' : v > 25 ? 'rgba(186,117,23,0.75)' : 'rgba(99,153,34,0.75)');
+  const borderColors = values.map(v => v > 50 ? '#E24B4A'              : v > 25 ? '#BA7517'              : '#639922');
+
+  container.innerHTML = `
+    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px;font-size:11px;color:var(--text2);">
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:2px;background:#E24B4A;display:inline-block;"></span>High (&gt;50%)</span>
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:2px;background:#BA7517;display:inline-block;"></span>Medium (25–50%)</span>
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:2px;background:#639922;display:inline-block;"></span>Low (&lt;25%)</span>
+    </div>
+    <div style="position:relative;width:100%;height:${Math.max(180, entries.length * 40 + 40)}px;">
+      <canvas id="stageChartCanvas"></canvas>
+    </div>`;
+
+  // Destroy old chart if exists
+  if (window._stageChart) { window._stageChart.destroy(); window._stageChart = null; }
+
+  window._stageChart = new Chart(document.getElementById('stageChartCanvas'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        data: values,
+        backgroundColor: bgColors,
+        borderColor: borderColors,
+        borderWidth: 1,
+        borderRadius: 5,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: { label: ctx => ` ${ctx.raw.toFixed(1)}% failure rate` },
+          backgroundColor: isDark ? '#2c2c2a' : '#fff',
+          titleColor: labelColor,
+          bodyColor: textColor,
+          borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
+          borderWidth: 0.5,
+          padding: 10,
+          cornerRadius: 8,
+        }
+      },
+      scales: {
+        x: {
+          min: 0, max: 100,
+          grid: { color: gridColor, drawTicks: false },
+          border: { display: false },
+          ticks: { color: textColor, font: { size: 11 }, callback: v => v + '%', stepSize: 25 }
+        },
+        y: {
+          grid: { display: false },
+          border: { display: false },
+          ticks: { color: labelColor, font: { size: 12, weight: '500' }, padding: 6 }
+        }
+      },
+      animation: { duration: 600, easing: 'easeOutQuart' }
+    }
+  });
+}
+function renderDurationChart(buildDurations) {
+  const svg = document.getElementById('durationChart');
+  if (!svg) return;
+
+  const barsContainer = document.getElementById('durationBars');
+  const lineContainer = document.getElementById('durationLine');
+  const labelsContainer = document.getElementById('durationLabels');
+  
+  if (!barsContainer || !lineContainer || !labelsContainer) return;
+
+  // Normalize durations to SVG coordinates
+  const durations = buildDurations.map(d => d[1]); // Extract duration values
+  const maxDur = Math.max(...durations);
+  
+  if (maxDur === 0) {
+    barsContainer.innerHTML = '<text x="400" y="100" text-anchor="middle" fill="var(--text2)">No data</text>';
+    return;
+  }
+
+  const chartWidth = 800 - 40;
+  const chartHeight = 160;
+  const barWidth = Math.max(2, chartWidth / buildDurations.length - 1);
+  const scale = chartHeight / maxDur;
+
+  // Create bars
+  let barsHtml = '';
+  let pointsForLine = [];
+  
+  buildDurations.forEach((bd, i) => {
+    const [buildNum, duration] = bd;
+    const x = 20 + (i * (chartWidth / buildDurations.length)) + (barWidth / 2);
+    const barHeight = duration * scale;
+    const y = 180 - barHeight;
+    const color = duration > maxDur * 0.7 ? 'rgba(255,69,96,.6)' : 
+                  duration > maxDur * 0.4 ? 'rgba(255,140,66,.6)' : 
+                  'rgba(0,219,160,.6)';
+    
+    barsHtml += `<rect x="${x - barWidth/2}" y="${y}" width="${barWidth}" height="${barHeight}" fill="${color}" rx="2"/>`;
+    pointsForLine.push([x, y]);
+  });
+  
+  barsContainer.innerHTML = barsHtml;
+
+  // Create line path
+  let pathData = `M ${pointsForLine[0][0]} ${pointsForLine[0][1]}`;
+  for (let i = 1; i < pointsForLine.length; i++) {
+    pathData += ` L ${pointsForLine[i][0]} ${pointsForLine[i][1]}`;
+  }
+  lineContainer.setAttribute('d', pathData);
+
+  // Create x-axis labels (every 4th or 5th build number)
+  let labelsHtml = '';
+  const labelInterval = Math.max(1, Math.floor(buildDurations.length / 5));
+  buildDurations.forEach((bd, i) => {
+    if (i % labelInterval === 0 || i === buildDurations.length - 1) {
+      const buildNum = bd[0];
+      const x = 20 + (i * (chartWidth / buildDurations.length)) + (barWidth / 2);
+      labelsHtml += `<text x="${x}" y="195" text-anchor="middle" style="font-size:9px;fill:var(--text2);">#${buildNum}</text>`;
+    }
+  });
+  labelsContainer.innerHTML = labelsHtml;
+}
+
 // ── MAIN LOAD ──
 async function loadPipelineKPIs() {
   try {
@@ -617,6 +829,9 @@ async function loadPipelineKPIs() {
 
     _allBuilds = data.builds;
     renderTimeline();
+    
+    // Render new charts
+    renderCharts(data);
 
     // polling logic: fast when running, otherwise rely on slow poll
     const hasRunning = data.builds.some(b => b.result === null);

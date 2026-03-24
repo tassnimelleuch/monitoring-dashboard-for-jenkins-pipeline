@@ -93,3 +93,23 @@ def pipeline_kpis_api():
 @role_required('admin', 'dev', 'qa')
 def running_stages():
     return jsonify(get_running_stages())
+
+
+# Debug endpoints for coverage troubleshooting
+@jenkins_bp.route('/api/debug/coverage/<int:build_number>')
+@role_required('admin')
+def debug_coverage_endpoint(build_number):
+    """Debug endpoint to check available coverage endpoints for a build."""
+    return jsonify(debug_coverage(build_number))
+
+
+@jenkins_bp.route('/api/coverage/<int:build_number>')
+@role_required('admin', 'dev', 'qa')
+def get_coverage_endpoint(build_number):
+    """Get coverage data for a specific build."""
+    coverage = get_coverage(build_number)
+    return jsonify({
+        'build_number': build_number,
+        'coverage': coverage,
+        'available': coverage is not None
+    })
