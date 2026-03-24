@@ -148,6 +148,16 @@
 }
 @keyframes bar-shine{0%{transform:translateX(-100%);}100%{transform:translateX(200%);}}
 
+/* abort button */
+.br-abort{width:22px;height:22px;border-radius:6px;background:rgba(255,69,96,.1);border:1px solid rgba(255,69,96,.25);color:var(--red);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s,transform .15s;margin-left:8px;}
+.br-abort:hover{background:rgba(255,69,96,.25);transform:scale(1.1);}
+.br-abort svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;}
+
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:26px;left:calc(var(--sw) + 24px);background:var(--accent);color:#fff;padding:11px 18px;border-radius:10px;font-size:12.5px;font-weight:700;box-shadow:0 8px 28px var(--aglow);opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s;pointer-events:none;z-index:900;}
+.toast.show{opacity:1;transform:translateY(0);}
+.toast.abort-toast{background:var(--red);}
 .tl-empty{padding:32px;text-align:center;color:var(--text2);font-size:12.5px;}
 .no-stage-txt{font-size:10px;color:var(--text2);font-style:italic;}
 </style>
@@ -156,6 +166,9 @@
 {% block body %}
 {% set active_page = 'pipeline_kpis' %}
 {% include 'admin/_sidebar.html' %}
+
+<!-- Toast notification -->
+<div class="toast" id="toast"></div>
 
 <!-- Tooltip -->
 <div class="seg-tip" id="segTip">
@@ -397,10 +410,15 @@ function buildRowHtml(b) {
        </div>`
     : '';
 
-  // result cell — for running builds show elapsed time below the badge
+  // result cell — for running builds show elapsed time and abort button
   const resultCell = isRunning
     ? `<div>
-         <span class="br-result run">${resultLabel(b.result)}</span>
+         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+           <span class="br-result run">${resultLabel(b.result)}</span>
+           <button class="br-abort" onclick="event.stopPropagation();confirmAbort(${b.number})" title="Abort build #${b.number}">
+             <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+           </button>
+         </div>
          <div style="font-size:9.5px;font-family:'JetBrains Mono',monospace;color:var(--text2);margin-top:4px;" id="brdur-${b.number}">${durText}</div>
          <div class="br-console">↗ console</div>
        </div>`
@@ -478,6 +496,51 @@ function startRunningTimers(running) {
 }
 
 function toggleShowMore() { _showingAll = !_showingAll; renderTimeline(); }
+
+// ── TOAST ──
+function showToast(msg, cls) {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.className = 'toast ' + (cls || '');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// ── ABORT BUILD ──
+function confirmAbort(buildNumber) {
+  showConfirm(
+    '⊘ Abort Build #' + buildNumber,
+    'Are you sure you want to abort build <strong>#' + buildNumber + '</strong>?',
+    async () => {
+      try {
+        const res = await fetch('/jenkins/api/abort/' + buildNumber, { method: 'POST' });
+        const data = await res.json();
+        if (data.aborted) {
+          showToast('Build #' + buildNumber + ' aborted');
+          const row = document.getElementById('brow-' + buildNumber);
+          if (row) {
+            const resultSpan = row.querySelector('.br-result');
+            if (resultSpan) { resultSpan.className = 'br-result abrt'; resultSpan.textContent = '⊘ Aborted'; }
+            const durEl = row.querySelector('[id="brdur-' + buildNumber + '"]');
+            if (durEl) durEl.textContent = 'Build aborted';
+            const abortBtn = row.querySelector('.br-abort');
+            if (abortBtn) abortBtn.style.display = 'none';
+          }
+          if (_activeTimers[buildNumber]) {
+            clearInterval(_activeTimers[buildNumber]);
+            delete _activeTimers[buildNumber];
+          }
+          setTimeout(loadPipelineKPIs, 2000);
+        } else {
+          showToast('Failed to abort: ' + (data.error || 'unknown'), 'abort-toast');
+        }
+      } catch (e) {
+        showToast('Network error during abort', 'abort-toast');
+      }
+    }
+  );
+}
 
 // ── CONFIRM MODAL ──
 function showConfirm(title, body, onYes) {
@@ -565,6 +628,19 @@ async function loadPipelineKPIs() {
     }
 
   } catch(e) { console.error('Pipeline KPI error:', e); }
+}
+
+// ── CHECK STATUS ──
+async function checkStatus() {
+  try {
+    const res = await fetch('/jenkins/api/status');
+    const data = await res.json();
+    if (!data.connected) {
+      document.getElementById('buildTimeline').innerHTML = '<div class="tl-empty">Jenkins disconnected</div>';
+    }
+  } catch (e) {
+    document.getElementById('buildTimeline').innerHTML = '<div class="tl-empty">Connection error</div>';
+  }
 }
 
 // ── BOOT ──
